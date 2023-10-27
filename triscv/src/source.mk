@@ -1,0 +1,2 @@
+SRC_LOCAL	!= echo src/*.c
+TRISCV_SOURCES	+= $(SRC_LOCAL)
