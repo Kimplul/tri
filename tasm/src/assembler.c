@@ -9,10 +9,29 @@
 #include <stdio.h>
 #include <errno.h>
 
+struct asm_symbol {
+	const char *name;
+	size_t offset;
+};
+
+struct asm_reloc {
+	enum asm_reloc_kind kind;
+	const char *sym;
+	size_t offset;
+};
+
 struct asm_ctx {
 	size_t size;
 	size_t idx;
 	tri_t *buf;
+
+	size_t sym_max;
+	size_t sym_count;
+	struct asm_symbol *syms;
+
+	size_t reloc_max;
+	size_t reloc_count;
+	struct asm_reloc *relocs;
 };
 
 static void emit(struct asm_ctx *ctx, tri_t i)
@@ -259,11 +278,174 @@ int process_file(struct asm_ctx *ctx, const char *file)
 	return res;
 }
 
+static struct asm_ctx *asm_ctx_create()
+{
+	struct asm_ctx *ctx = malloc(sizeof(struct asm_ctx));
+	/* code buffer */
+	ctx->size = 1;
+	ctx->buf = malloc(sizeof(tri_t));
+	ctx->idx = 0;
+
+	/* relocations */
+	ctx->reloc_max = 1;
+	ctx->relocs = malloc(sizeof(struct asm_reloc));
+	ctx->reloc_count = 0;
+
+	/* symbols */
+	ctx->sym_max = 1;
+	ctx->syms = malloc(sizeof(struct asm_reloc));
+	ctx->sym_count = 0;
+
+	return ctx;
+}
+
+static void asm_ctx_relocs_destroy(struct asm_ctx *ctx)
+{
+	for (size_t i = 0; i < ctx->reloc_count; ++i) {
+		free((void *)ctx->relocs[i].sym);
+	}
+
+	free(ctx->relocs);
+}
+
+static void asm_ctx_syms_destroy(struct asm_ctx *ctx)
+{
+	for (size_t i = 0; i < ctx->sym_count; ++i) {
+		free((void *)ctx->syms[i].name);
+	}
+
+	free(ctx->syms);
+}
+
+static void asm_ctx_destroy(struct asm_ctx *ctx)
+{
+	free(ctx->buf);
+	asm_ctx_relocs_destroy(ctx);
+	asm_ctx_syms_destroy(ctx);
+	free(ctx);
+}
+
+static void fix_reloc_la(struct asm_ctx *ctx, size_t ro, size_t so)
+{
+	tri_t t = tri_from(so);
+	/* 9 lowest */
+	tri_t lo = tri_mask(t, 9);
+	/* 18 highest */
+	tri_t hi = tri_mask(tri_sr(t, 9), 18);
+
+	/* lui, assume zero-initialized immediate */
+	tri_t lui = ctx->buf[ro];
+	assert(parse_opcode(lui) == OPCODE_LUI);
+	tri_t rd, imm;
+	parse_u(lui, &rd, &imm);
+	assert(imm == 0);
+	ctx->buf[ro] = build_u(OPCODE_LUI, rd, hi);
+
+	/* addi */
+	tri_t addi = ctx->buf[ro + 1];
+	assert(parse_opcode(addi) == OPCODE_OP_IMM);
+	tri_t fn0, rs1;
+	parse_i(addi, &rd, &fn0, &rs1, &imm);
+	assert(fn0 == OP_IMM_ADDI);
+	assert(imm == 0);
+	ctx->buf[ro + 1] = build_i(OPCODE_OP_IMM, rd, fn0, rs1, lo);
+}
+
+static void fix_reloc_b(struct asm_ctx *ctx, size_t ro, size_t so)
+{
+	int64_t off = so - ctx->idx;
+	tri_t t = tri_from(off);
+	if (tri_mask(t, 9) != t) {
+		/* should really be line based rather than offset, but good
+		 * enough for now */
+		fprintf(stderr, "branch offset at %llu too large\n",
+				(unsigned long long)ro);
+		abort();
+	}
+
+	/* low five */
+	tri_t lo = tri_mask(t, 5);
+	/* high four */
+	tri_t hi = tri_mask(tri_sr(t, 5), 4);
+
+	tri_t b = ctx->buf[ro];
+	assert(parse_opcode(b) == OPCODE_BRANCH);
+
+	tri_t imm4, fn0, rs1, rs2, imm5;
+	parse_s(b, &imm4, &fn0, &rs1, &rs2, &imm5);
+	assert(imm4 == 0 && imm5 == 0);
+
+	ctx->buf[ro] = build_s(OPCODE_BRANCH, hi, fn0, rs1, rs2, lo);
+}
+
+static void fix_reloc_j(struct asm_ctx *ctx, size_t ro, size_t so)
+{
+	int64_t off = so - ctx->idx;
+	tri_t t = tri_from(off);
+	if (tri_mask(t, 18) != t) {
+		fprintf(stderr, "jump offset at %llu too large\n",
+				(unsigned long long)ro);
+		abort();
+	}
+
+	tri_t j = ctx->buf[ro];
+	assert(parse_opcode(j) == OPCODE_JAL);
+
+	tri_t rd, imm18;
+	parse_u(j, &rd, &imm18);
+	assert(imm18 == 0);
+
+	ctx->buf[ro] = build_u(OPCODE_JAL, rd, t);
+}
+
+static int try_fix_reloc(struct asm_ctx *ctx, struct asm_reloc r)
+{
+	/* ideally this would probably be a hashmap, but good enough for now */
+	for (size_t i = 0; i < ctx->sym_count; ++i) {
+		struct asm_symbol s = ctx->syms[i];
+		if (strcmp(s.name, r.sym) != 0)
+			continue;
+
+		size_t ro = r.offset;
+		size_t so = s.offset;
+		/* matching */
+		switch (r.kind) {
+			case RELOC_LA: fix_reloc_la(ctx, ro, so); break;
+			case RELOC_B: fix_reloc_b(ctx, ro, so); break;
+			case RELOC_J: fix_reloc_j(ctx, ro, so); break;
+			default: fprintf(stderr, "unimplemented reloc: %d\n", r.kind);
+				 abort();
+		}
+		return 0;
+	}
+
+	/* we didn't find a symbol matching reloc */
+	return 1;
+}
+
+static int fix_relocs(struct asm_ctx *ctx)
+{
+	for (size_t i = 0; i < ctx->reloc_count; ++i) {
+		struct asm_reloc r = ctx->relocs[i];
+		if (try_fix_reloc(ctx, r)) {
+			/* we were unable to fulfill this reloc, fail */
+			fprintf(stderr, "unable to fulfill reloc for %s\n", r.sym);
+			return 1;
+		}
+	}
+
+	return 0;
+}
+
 int assemble(const char *outfile, const char *infile)
 {
 	/** @todo cleanup */
-	struct asm_ctx ctx = {.size = 1, .buf = malloc(sizeof(tri_t)), .idx = 0};
-	int ret = process_file(&ctx, infile);
+	struct asm_ctx *ctx = asm_ctx_create();
+	int ret = process_file(ctx, infile);
+	if (ret)
+		return ret;
+
+	ret = fix_relocs(ctx);
 	if (ret)
 		return ret;
 
@@ -271,8 +453,8 @@ int assemble(const char *outfile, const char *infile)
 	if (!f)
 		return -1;
 
-	for (size_t i = 0; i < ctx.idx; ++i) {
-		tri_t t = ctx.buf[i];
+	for (size_t i = 0; i < ctx->idx; ++i) {
+		tri_t t = ctx->buf[i];
 		/* output trytewise LE */
 		uint32_t t0 = tri_mask(t, 9);
 		uint32_t t1 = tri_mask(tri_sr(t,  9), 9);
@@ -289,7 +471,8 @@ int assemble(const char *outfile, const char *infile)
 	}
 
 	fclose(f);
-	free(ctx.buf);
+	asm_ctx_destroy(ctx);
+	return 0;
 }
 
 void check_shift(tri_t shmt)
@@ -382,12 +565,29 @@ tri_t check_width(const char *width)
 	return 0;
 }
 
-void emit_reloc(struct asm_ctx *ctx, enum asm_reloc reloc, const char *name)
+void emit_reloc(struct asm_ctx *ctx, enum asm_reloc_kind reloc, const char *name)
 {
-	/** @todo implement */
+	if (ctx->reloc_count >= ctx->reloc_max) {
+		ctx->reloc_max *= 2;
+		ctx->relocs = realloc(ctx->relocs, ctx->reloc_max * sizeof(struct asm_reloc));
+	}
+
+	ctx->relocs[ctx->reloc_count++] = (struct asm_reloc){
+		.kind = reloc,
+		.sym = strdup(name),
+		.offset = ctx->idx
+	};
 }
 
 void emit_label(struct asm_ctx *ctx, const char *name)
 {
-	/** @todo implement */
+	if (ctx->sym_count >= ctx->sym_max) {
+		ctx->sym_max *= 2;
+		ctx->syms = realloc(ctx->syms, ctx->sym_max * sizeof(struct asm_symbol));
+	}
+
+	ctx->syms[ctx->sym_count++] = (struct asm_symbol){
+		.name = strdup(name),
+		.offset = ctx->idx
+	};
 }

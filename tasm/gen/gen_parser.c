@@ -929,8 +929,8 @@ static const yytype_int16 yyrline[] =
      223,   224,   225,   226,   227,   228,   229,   230,   231,   232,
      233,   234,   235,   236,   237,   240,   243,   246,   249,   252,
      255,   258,   261,   264,   267,   270,   273,   276,   279,   282,
-     285,   288,   291,   295,   298,   302,   306,   310,   314,   317,
-     320,   323,   326,   329,   332,   335,   339,   342,   348,   355,
+     285,   288,   291,   295,   298,   302,   306,   311,   315,   318,
+     321,   324,   327,   330,   333,   336,   340,   343,   348,   355,
      358,   361,   365,   368,   371,   374,   378,   381,   384,   388,
      391,   392,   393,   394,   397,   398,   401,   402,   403,   406,
      407,   410,   411
@@ -2695,8 +2695,8 @@ yyreduce:
 
   case 102: /* i: jal gpr "," addr  */
 #line 292 "src/parser.y"
-        {emit_u(ctx, OPCODE_JAL, (yyvsp[-2].gpr), 0);
-	 emit_reloc(ctx, RELOC_J, (yyvsp[0].str));}
+        {emit_reloc(ctx, RELOC_J, (yyvsp[0].str));
+	 emit_u(ctx, OPCODE_JAL, (yyvsp[-2].gpr), 0);}
 #line 2701 "gen/gen_parser.c"
     break;
 
@@ -2708,91 +2708,91 @@ yyreduce:
 
   case 104: /* i: beq gpr "," gpr "," addr  */
 #line 299 "src/parser.y"
-        {emit_s(ctx, OPCODE_BRANCH, BRANCH_BEQ, (yyvsp[-4].gpr), (yyvsp[-2].gpr), 0);
-	 emit_reloc(ctx, RELOC_B, (yyvsp[0].str));}
+        {emit_reloc(ctx, RELOC_B, (yyvsp[0].str));
+	 emit_s(ctx, OPCODE_BRANCH, BRANCH_BEQ, (yyvsp[-4].gpr), (yyvsp[-2].gpr), 0);}
 #line 2714 "gen/gen_parser.c"
     break;
 
   case 105: /* i: bne gpr "," gpr "," addr  */
 #line 303 "src/parser.y"
-        {emit_s(ctx, OPCODE_BRANCH, BRANCH_BNE, (yyvsp[-4].gpr), (yyvsp[-2].gpr), 0);
-	 emit_reloc(ctx, RELOC_B, (yyvsp[0].str));}
+        {emit_reloc(ctx, RELOC_B, (yyvsp[0].str));
+	 emit_s(ctx, OPCODE_BRANCH, BRANCH_BNE, (yyvsp[-4].gpr), (yyvsp[-2].gpr), 0);}
 #line 2721 "gen/gen_parser.c"
     break;
 
   case 106: /* i: blt gpr "," gpr "," addr  */
 #line 307 "src/parser.y"
-        {emit_s(ctx, OPCODE_BRANCH, BRANCH_BLT, (yyvsp[-4].gpr), (yyvsp[-2].gpr), 0);
-	 emit_reloc(ctx, RELOC_B, (yyvsp[0].str));}
-#line 2728 "gen/gen_parser.c"
+        {emit_reloc(ctx, RELOC_B, (yyvsp[0].str));
+	 emit_s(ctx, OPCODE_BRANCH, BRANCH_BLT, (yyvsp[-4].gpr), (yyvsp[-2].gpr), 0);
+	 }
+#line 2729 "gen/gen_parser.c"
     break;
 
   case 107: /* i: bge gpr "," gpr "," addr  */
-#line 311 "src/parser.y"
-        {emit_s(ctx, OPCODE_BRANCH, BRANCH_BGE, (yyvsp[-4].gpr), (yyvsp[-2].gpr), 0);
-	 emit_reloc(ctx, RELOC_B, (yyvsp[0].str));}
-#line 2735 "gen/gen_parser.c"
+#line 312 "src/parser.y"
+        {emit_reloc(ctx, RELOC_B, (yyvsp[0].str));
+	 emit_s(ctx, OPCODE_BRANCH, BRANCH_BGE, (yyvsp[-4].gpr), (yyvsp[-2].gpr), 0);}
+#line 2736 "gen/gen_parser.c"
     break;
 
   case 108: /* i: ld width "," gpr "," imm "(" gpr ")"  */
-#line 315 "src/parser.y"
+#line 316 "src/parser.y"
         {emit_i(ctx, OPCODE_LOAD, check_width((yyvsp[-7].str)), (yyvsp[-5].gpr), (yyvsp[-1].gpr), (yyvsp[-3].tri));}
-#line 2741 "gen/gen_parser.c"
+#line 2742 "gen/gen_parser.c"
     break;
 
   case 109: /* i: st width "," gpr "," imm "(" gpr ")"  */
-#line 318 "src/parser.y"
+#line 319 "src/parser.y"
         {emit_s(ctx, OPCODE_STORE, check_width((yyvsp[-7].str)), (yyvsp[-5].gpr), (yyvsp[-1].gpr), (yyvsp[-3].tri));}
-#line 2747 "gen/gen_parser.c"
+#line 2748 "gen/gen_parser.c"
     break;
 
   case 110: /* i: ecall  */
-#line 321 "src/parser.y"
+#line 322 "src/parser.y"
         {emit_i(ctx, OPCODE_SYSTEM, X0_NUM, SYSTEM_ECALL, X0_NUM, 0);}
-#line 2753 "gen/gen_parser.c"
+#line 2754 "gen/gen_parser.c"
     break;
 
   case 111: /* i: ebreak  */
-#line 324 "src/parser.y"
+#line 325 "src/parser.y"
         {emit_i(ctx, OPCODE_SYSTEM, X0_NUM, SYSTEM_EBREAK, X0_NUM, 0);}
-#line 2759 "gen/gen_parser.c"
+#line 2760 "gen/gen_parser.c"
     break;
 
   case 112: /* i: pcall  */
-#line 327 "src/parser.y"
+#line 328 "src/parser.y"
         {emit_i(ctx, OPCODE_SYSTEM, X0_NUM, SYSTEM_PCALL, X0_NUM, 0);}
-#line 2765 "gen/gen_parser.c"
+#line 2766 "gen/gen_parser.c"
     break;
 
   case 113: /* i: fence  */
-#line 330 "src/parser.y"
+#line 331 "src/parser.y"
         {emit_i(ctx, OPCODE_MEM, X0_NUM, MEM_FENCE, X0_NUM, 0); /* still todo */}
-#line 2771 "gen/gen_parser.c"
+#line 2772 "gen/gen_parser.c"
     break;
 
   case 114: /* i: unop gpr "," gpr "," str  */
-#line 333 "src/parser.y"
+#line 334 "src/parser.y"
         {emit_i(ctx, OPCODE_OP_IMM, (yyvsp[-4].gpr), OP_IMM_UNOP, (yyvsp[-2].gpr), check_nop((yyvsp[0].str)));}
-#line 2777 "gen/gen_parser.c"
+#line 2778 "gen/gen_parser.c"
     break;
 
   case 115: /* i: diop gpr "," gpr "," gpr "," str  */
-#line 336 "src/parser.y"
+#line 337 "src/parser.y"
         {emit_d(ctx, OPCODE_DIOP, (yyvsp[-6].gpr), (yyvsp[-4].gpr), (yyvsp[-2].gpr), check_nop3((yyvsp[0].str)));}
-#line 2783 "gen/gen_parser.c"
+#line 2784 "gen/gen_parser.c"
     break;
 
   case 116: /* i: nop  */
-#line 340 "src/parser.y"
+#line 341 "src/parser.y"
         {emit_i(ctx, OPCODE_OP_IMM, X0_NUM, OP_IMM_ADDI, X0_NUM, 0);}
-#line 2789 "gen/gen_parser.c"
+#line 2790 "gen/gen_parser.c"
     break;
 
   case 117: /* i: la gpr "," addr  */
-#line 343 "src/parser.y"
-        {emit_u(ctx, OPCODE_LUI, (yyvsp[-2].gpr), 0);
-	 /* important that the reloc is in the middle here */
-	 emit_reloc(ctx, RELOC_LA, (yyvsp[0].str));
+#line 344 "src/parser.y"
+        {emit_reloc(ctx, RELOC_LA, (yyvsp[0].str));
+	 emit_u(ctx, OPCODE_LUI, (yyvsp[-2].gpr), 0);
 	 emit_i(ctx, OPCODE_OP_IMM, (yyvsp[-2].gpr), OP_IMM_ADDI, (yyvsp[-2].gpr), 0);}
 #line 2798 "gen/gen_parser.c"
     break;

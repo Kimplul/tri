@@ -289,27 +289,28 @@ i
 	{emit_u(ctx, OPCODE_AUIPC, $2, $4);}
 
 	| jal gpr "," addr
-	{emit_u(ctx, OPCODE_JAL, $2, 0);
-	 emit_reloc(ctx, RELOC_J, $4);}
+	{emit_reloc(ctx, RELOC_J, $4);
+	 emit_u(ctx, OPCODE_JAL, $2, 0);}
 
 	| jalr gpr "," gpr "," imm
 	{emit_i(ctx, OPCODE_JALR, $2, 0, $4, $6);}
 
 	| beq gpr "," gpr "," addr
-	{emit_s(ctx, OPCODE_BRANCH, BRANCH_BEQ, $2, $4, 0);
-	 emit_reloc(ctx, RELOC_B, $6);}
+	{emit_reloc(ctx, RELOC_B, $6);
+	 emit_s(ctx, OPCODE_BRANCH, BRANCH_BEQ, $2, $4, 0);}
 
 	| bne gpr "," gpr "," addr
-	{emit_s(ctx, OPCODE_BRANCH, BRANCH_BNE, $2, $4, 0);
-	 emit_reloc(ctx, RELOC_B, $6);}
+	{emit_reloc(ctx, RELOC_B, $6);
+	 emit_s(ctx, OPCODE_BRANCH, BRANCH_BNE, $2, $4, 0);}
 
 	| blt gpr "," gpr "," addr
-	{emit_s(ctx, OPCODE_BRANCH, BRANCH_BLT, $2, $4, 0);
-	 emit_reloc(ctx, RELOC_B, $6);}
+	{emit_reloc(ctx, RELOC_B, $6);
+	 emit_s(ctx, OPCODE_BRANCH, BRANCH_BLT, $2, $4, 0);
+	 }
 
 	| bge gpr "," gpr "," addr
-	{emit_s(ctx, OPCODE_BRANCH, BRANCH_BGE, $2, $4, 0);
-	 emit_reloc(ctx, RELOC_B, $6);}
+	{emit_reloc(ctx, RELOC_B, $6);
+	 emit_s(ctx, OPCODE_BRANCH, BRANCH_BGE, $2, $4, 0);}
 
 	| ld width "," gpr "," imm "(" gpr ")"
 	{emit_i(ctx, OPCODE_LOAD, check_width($2), $4, $8, $6);}
@@ -340,9 +341,8 @@ i
 	{emit_i(ctx, OPCODE_OP_IMM, X0_NUM, OP_IMM_ADDI, X0_NUM, 0);}
 
 	| la gpr "," addr
-	{emit_u(ctx, OPCODE_LUI, $2, 0);
-	 /* important that the reloc is in the middle here */
-	 emit_reloc(ctx, RELOC_LA, $4);
+	{emit_reloc(ctx, RELOC_LA, $4);
+	 emit_u(ctx, OPCODE_LUI, $2, 0);
 	 emit_i(ctx, OPCODE_OP_IMM, $2, OP_IMM_ADDI, $2, 0);}
 
 	| li gpr "," imm

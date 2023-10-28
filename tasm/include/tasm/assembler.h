@@ -6,7 +6,7 @@
 
 struct asm_ctx;
 
-enum asm_reloc {
+enum asm_reloc_kind {
 	/* absolute LUI + ADDI */
 	RELOC_LA,
 	/* relative AUIPC + ADDI (currently unimplemented) */
@@ -35,7 +35,7 @@ void emit_d(struct asm_ctx *ctx, tri_t opcode,
 
 /* emits a relocation for the previous instruction, very important to keep in
  * mind! */
-void emit_reloc(struct asm_ctx *ctx, enum asm_reloc reloc, const char *name);
+void emit_reloc(struct asm_ctx *ctx, enum asm_reloc_kind reloc, const char *name);
 void emit_label(struct asm_ctx *ctx, const char *name);
 
 tri_t check_nop(const char *nop);
