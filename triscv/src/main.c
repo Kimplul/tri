@@ -1,3 +1,9 @@
+#include <limits.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <getopt.h>
+#include <stdio.h>
+
 #include <triscv/uart.h>
 #include <triscv/cpu.h>
 #include <triscv/mmu.h>
@@ -13,33 +19,83 @@
 #define IMM9(t) ((t) << 36)
 #define IMM18(t) ((t) << 18)
 
-static const tri_t prog[] = {
-	/* li x1, '0' (48) */
-	/* or in this case, lui x1, 0, addi x1, 48 */
-	OPCODE(0b0100ULL) | RD(0b01ULL) | IMM18(0b0ULL),
-	OPCODE(0b0000ULL) | RD(0b01ULL) | RS1(0b01ULL) | IMM9(0b0110100100ULL),
-	/* li x2, 19683 (uart base reg) */
-	OPCODE(0b0100ULL) | RD(0b10ULL) | IMM18(0b1ULL),
-	OPCODE(0b0000ULL) | RD(0b10ULL) | RS1(0b10ULL) | IMM9(0ULL),
-	/* sw x1, 0(x2) */
-	OPCODE(0b0010ULL) | RS2(0b01ULL) | RS1(0b10ULL),
-	/* li x1, 3 (mpower)*/
-	OPCODE(0b0100ULL) | RD(0b01ULL),
-	OPCODE(0b0000ULL) | RD(0b01ULL) | RS1(0b01ULL) | IMM9(0b0100ULL),
-	/* csrrw mpower, x0, x1 */
-	/* mpower = -9841, which is then internally converted to 0 */
-	/* NOT FINAL CSR VALUE */
-	OPCODE(0b0001ULL) | RD(0b00ULL) | RS1(0b01ULL) | IMM9(0b101010101010101010UL)
-};
+static const char *cmdline_usage =
+"triscv simulator usage:\n"
+" triscv simfile\n"
+"	-h      Show usage(this)\n"
+"	simfile File to simulate\n"
+;
 
-int main()
+static void usage()
 {
+	fprintf(stderr, cmdline_usage);
+}
+
+static const char *read_simulation_file(const char *file, size_t *len)
+{
+	FILE *f = fopen(file, "rb");
+	if (!f) {
+		fprintf(stderr, "failed opening simulation file %s\n", file);
+		return NULL;
+	}
+
+	fseek(f, 0, SEEK_END);
+	long s = ftell(f);
+	if (s == LONG_MAX) {
+		fprintf(stderr, "unable to get file size of %s\n", file);
+		return NULL;
+	}
+
+	if (len)
+		*len = s;
+
+	fseek(f, 0, SEEK_SET);
+	char *buf = malloc(s);
+	if (!buf)
+		return NULL;
+
+	fread(buf, s, 1 , f);
+	return buf;
+}
+
+int main(int argc, char *argv[])
+{
+	int opt;
+	while ((opt = getopt(argc, argv, "h")) != -1) {
+		switch (opt) {
+			case 'h':
+				usage();
+				exit(EXIT_SUCCESS);
+				break;
+			default:
+				usage();
+				exit(EXIT_FAILURE);
+				break;
+		}
+	}
+
+	if (optind >= argc) {
+		fprintf(stderr, "no simulation file\n");
+		usage();
+		exit(EXIT_FAILURE);
+	}
+
+	if (optind != argc - 1) {
+		fprintf(stderr, "too many simulation files\n");
+		usage();
+		exit(EXIT_FAILURE);
+	}
+
+
 	/* add memory regions etc. */
 	struct mmu *mmu = mmu_create();
 
 	/* map one trinary page */
 	struct mem *mem = mem_create(19683);
-	mem_init(mem, prog, 8);
+	size_t len = 0;
+	const char *buf = read_simulation_file(argv[optind], &len);
+	mem_init(mem, buf, len);
+
 	mmu_map_dev(mmu, 0, mem_dev(mem));
 
 	struct uart *uart = uart_create();
