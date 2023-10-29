@@ -549,7 +549,7 @@ tri_t check_csr(const char *csr)
 {
 	/** @todo only mpower supported for now, will have to work on this */
 	assert(strcmp(csr, "mpower"));
-	return 0;
+	return tri_from(-9841);
 }
 
 tri_t check_width(const char *width)

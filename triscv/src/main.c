@@ -31,7 +31,7 @@ static void usage()
 	fprintf(stderr, cmdline_usage);
 }
 
-static const char *read_simulation_file(const char *file, size_t *len)
+static void *read_simulation_file(const char *file, size_t *len)
 {
 	FILE *f = fopen(file, "rb");
 	if (!f) {
@@ -55,6 +55,7 @@ static const char *read_simulation_file(const char *file, size_t *len)
 		return NULL;
 
 	fread(buf, s, 1 , f);
+	fclose(f);
 	return buf;
 }
 
@@ -93,7 +94,7 @@ int main(int argc, char *argv[])
 	/* map one trinary page */
 	struct mem *mem = mem_create(19683);
 	size_t len = 0;
-	const char *buf = read_simulation_file(argv[optind], &len);
+	const uint32_t *buf = read_simulation_file(argv[optind], &len);
 	mem_init(mem, buf, len);
 
 	mmu_map_dev(mmu, 0, mem_dev(mem));

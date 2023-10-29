@@ -346,8 +346,8 @@ i
 	 emit_i(ctx, OPCODE_OP_IMM, $2, OP_IMM_ADDI, $2, 0);}
 
 	| li gpr "," imm
-	{emit_u(ctx, OPCODE_LUI, $2, 0);
-	 emit_i(ctx, OPCODE_OP_IMM, $2, OP_IMM_ADDI, $2, 0);}
+	{emit_u(ctx, OPCODE_LUI, $2, tri_sr($4, 9));
+	 emit_i(ctx, OPCODE_OP_IMM, $2, OP_IMM_ADDI, $2, tri_mask($4, 9));}
 	/* stuff like call and ret TBD once I've come up with a proper register
 	 * calling convention so we know which register to use as ra */
 

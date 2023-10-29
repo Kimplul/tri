@@ -2799,8 +2799,8 @@ yyreduce:
 
   case 118: /* i: li gpr "," imm  */
 #line 349 "src/parser.y"
-        {emit_u(ctx, OPCODE_LUI, (yyvsp[-2].gpr), tri_sr((yyvsp[0].tri), 9));
-	 emit_i(ctx, OPCODE_OP_IMM, (yyvsp[-2].gpr), OP_IMM_ADDI, (yyvsp[-2].gpr), tri_mask((yyvsp[0].tri), 9));}
+        {emit_u(ctx, OPCODE_LUI, (yyvsp[-2].gpr), 0);
+	 emit_i(ctx, OPCODE_OP_IMM, (yyvsp[-2].gpr), OP_IMM_ADDI, (yyvsp[-2].gpr), 0);}
 #line 2805 "gen/gen_parser.c"
     break;
 

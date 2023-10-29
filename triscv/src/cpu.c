@@ -1,6 +1,7 @@
 #include <triscv/cpu.h>
 #include <triscv/mmu.h>
 #include <triscv/csr.h>
+#include <bits.h>
 
 struct cpu {
 	vm_t pc;
@@ -95,72 +96,15 @@ void cpu_destroy(struct cpu *cpu)
 	free(cpu);
 }
 
-static tri_t get_rd(tri_t i)
-{
-	i = tri_sr(i, 5);
-	return tri_mask(i, 4);
-}
-
-static tri_t get_rs1(tri_t i)
-{
-	i = tri_sr(i, 14);
-	return tri_mask(i, 4);
-}
-
-static tri_t get_rs2(tri_t i)
-{
-	i = tri_sr(i, 18);
-	return tri_mask(i, 4);
-}
-
-static tri_t get_imm4(tri_t i)
-{
-	i = tri_sr(i, 5);
-	return tri_mask(i, 4);
-}
-
-static tri_t get_imm5(tri_t i)
-{
-	i = tri_sr(i, 22);
-	return tri_mask(i, 5);
-}
-
-static tri_t get_imm9(tri_t i)
-{
-	i = tri_sr(i, 18);
-	return tri_mask(i, 9);
-}
-
-static tri_t get_imm18(tri_t i)
-{
-	i = tri_sr(i, 9);
-	return tri_mask(i, 18);
-}
-
-static tri_t get_fn0(tri_t i)
-{
-	i = tri_sr(i, 9);
-	return tri_mask(i, 5);
-}
-
-/** @todo these macros should be ripped out into some common repository for
- * reuse in an assembler */
-/* ALL HARDCODED VALUES ARE PLACEHOLDERS FOR NOW */
-
-/* 0 */
-#define OP_IMM 0b0000000000
 static void do_op_imm(struct cpu *cpu, tri_t i)
 {
-	tri_t rs1 = get_rs1(i);
-	tri_t rd = get_rd(i);
+	tri_t rd, fn0, rs1, imm9;
+	parse_i(i, &rd, &fn0, &rs1, &imm9);
 
 	tri_t src = get_gpr(cpu, rs1);
-	tri_t imm9 = get_imm9(i);
-	tri_t fn0 = get_fn0(i);
 
-#define ADDI 0
 	switch (fn0) {
-	case ADDI: {
+	case OP_IMM_ADDI: {
 		tri_t r = tri_add(src, imm9);
 		set_gpr(cpu, rd, r);
 		break;
@@ -173,23 +117,17 @@ static void do_op_imm(struct cpu *cpu, tri_t i)
 	cpu->pc += 3;
 }
 
-/* 1 */
-#define SYSTEM 0b0000000001
 static void do_system(struct cpu *cpu, tri_t i)
 {
-	size_t rs1 = get_rs1(i);
-	size_t rd = get_rd(i);
+	tri_t rd, fn0, rs1, imm9;
+	parse_i(i, &rd, &fn0, &rs1, &imm9);
 
 	tri_t src = get_gpr(cpu, rs1);
-	tri_t csr = get_imm9(i);
-	tri_t fn0 = get_fn0(i);
 
-
-#define CSRRW 0
 	switch (fn0) {
-	case CSRRW: {
+	case SYSTEM_CSRRW: {
 		/* read existing value and replace it with rs1 */
-		size_t n = get_csr_num(csr);
+		size_t n = get_csr_num(imm9);
 		tri_t c = get_csr(cpu, n);
 		set_csr(cpu, n, src);
 		set_gpr(cpu, rd, c);
@@ -204,27 +142,21 @@ static void do_system(struct cpu *cpu, tri_t i)
 	cpu->pc += 3;
 }
 
-/* -1 */
-#define STORE 0b0000000010
 static void do_store(struct cpu *cpu, tri_t i)
 {
-	size_t rs1 = get_rs1(i);
-	size_t rs2 = get_rs2(i);
+	tri_t imm4, fn0, rs1, rs2, imm5;
+	parse_s(i, &imm4, &fn0, &rs1, &rs2, &imm5);
 
-	tri_t src = get_gpr(cpu, rs2);
-	tri_t base = get_gpr(cpu, rs1);
-	tri_t imm4 = get_imm4(i);
-	tri_t imm5 = get_imm5(i);
-	tri_t fn0 = get_fn0(i);
-
-	tri_t imm = tri_sl(imm5, 4) | imm4;
+	tri_t imm9 = tri_sl(imm4, 5) | imm5;
+	tri_t base = get_gpr(cpu, rs2);
+	tri_t src = get_gpr(cpu, rs1);
 
 	/* should maybe check that there's zeroes in other trits in fn0? */
 	int w = tri_get_trit(fn0, 4);
 
 	/* somewhat unsure if mmu should function in trinary or binary at this
 	 * point */
-	tri_t addr = tri_add(base, imm);
+	tri_t addr = tri_add(base, imm9);
 	vm_t a = tri_to(addr);
 
 	switch (w) {
@@ -238,12 +170,10 @@ static void do_store(struct cpu *cpu, tri_t i)
 	cpu->pc += 3;
 }
 
-/* 3 */
-#define LUI 0b0000000100
 static void do_lui(struct cpu *cpu, tri_t i)
 {
-	size_t rd = get_rd(i);
-	tri_t imm18 = get_imm18(i);
+	tri_t rd, imm18;
+	parse_u(i, &rd, &imm18);
 	set_gpr(cpu, rd, tri_sl(imm18, 9));
 	cpu->pc += 3;
 }
@@ -263,11 +193,11 @@ void cpu_run(struct cpu *cpu, vm_t start)
 		/** @todo check for raised interrupts, illegal addr etc. */
 
 		/* check lowest five trits to determine opcode */
-		switch (tri_mask(i, 5)) {
-		case LUI:    do_lui(cpu, i);    break;
-		case STORE:  do_store(cpu, i);  break;
-		case SYSTEM: do_system(cpu, i); break;
-		case OP_IMM: do_op_imm(cpu, i); break;
+		switch (parse_opcode(i)) {
+		case OPCODE_LUI:    do_lui(cpu, i);    break;
+		case OPCODE_STORE:  do_store(cpu, i);  break;
+		case OPCODE_SYSTEM: do_system(cpu, i); break;
+		case OPCODE_OP_IMM: do_op_imm(cpu, i); break;
 		default: /** @todo raise illegal instruction exception */
 			     fprintf(stderr, "illegal/unimplemented "
 					     "instruction at %lx, aborting\n",
