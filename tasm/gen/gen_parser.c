@@ -80,8 +80,8 @@
 
 #include <tasm/assembler.h>
 #include <tasm/parser.h>
-#include <tasm/bits.h>
-#include <tasm/regs.h>
+#include <bits.h>
+#include <regs.h>
 #include <tri.h>
 
 

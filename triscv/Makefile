@@ -22,7 +22,7 @@ setup:
 
 CLEANUP		:= build deps.mk triscv
 CLEANUP_CMD	:=
-TRISCV_SOURCES	:= deps/utf9/utf9.c
+TRISCV_SOURCES	:= ../utf9/utf9.c ../core/bits.c
 
 include src/source.mk
 

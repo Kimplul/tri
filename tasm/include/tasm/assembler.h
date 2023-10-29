@@ -1,7 +1,7 @@
 #ifndef TASM_ASSEMBLER_H
 #define TASM_ASSEMBLER_H
 
-#include <tasm/regs.h>
+#include <regs.h>
 #include <tri.h>
 
 struct asm_ctx;

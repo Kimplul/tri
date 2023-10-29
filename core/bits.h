@@ -1,8 +1,8 @@
 #ifndef TASM_BITS_H
 #define TASM_BITS_H
 
-#include <tasm/regs.h>
-#include <tri.h>
+#include "regs.h"
+#include "tri.h"
 
 #define OPCODE_OP_IMM 0b0000000000
 #define OP_IMM_ADDI   0b0000000000

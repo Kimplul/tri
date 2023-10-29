@@ -1,6 +1,6 @@
 #include <tasm/assembler.h>
 #include <tasm/parser.h>
-#include <tasm/bits.h>
+#include <bits.h>
 
 #include <string.h>
 #include <unistd.h>

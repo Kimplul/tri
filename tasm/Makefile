@@ -22,7 +22,7 @@ setup:
 
 CLEANUP		:= build deps.mk tasm
 CLEANUP_CMD	:=
-TASM_SOURCES	:=
+TASM_SOURCES	:= ../core/bits.c
 
 include src/source.mk
 

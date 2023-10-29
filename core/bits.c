@@ -1,4 +1,4 @@
-#include <tasm/bits.h>
+#include <bits.h>
 
 tri_t parse_opcode(tri_t i)
 {

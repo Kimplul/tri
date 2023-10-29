@@ -41,7 +41,7 @@ WARNFLAGS	= -Wall -Wextra
 COMPILE_FLAGS	= $(CFLAGS) $(WARNFLAGS) $(OPTFLAGS) $(OBFLAGS) $(ASSERTFLAGS) \
 		   $(DEBUGFLAGS)
 
-INCLUDE_FLAGS	= -I include -I ../core -I deps/utf9
+INCLUDE_FLAGS	= -I include -I ../core -I ../utf9
 
 # This makes sure .bss is loaded into the binary
 OBJCOPY_FLAGS	?= -Obinary -R .garbage \
