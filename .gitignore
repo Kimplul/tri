@@ -1,4 +1,5 @@
 tasm/tasm
+tdump/tdump
 triscv/triscv
 deps.mk
 build
