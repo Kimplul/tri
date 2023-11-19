@@ -181,6 +181,7 @@ str	\"(\\.|[^"\\])*\"
 "pcall"  {return pcall;}
 "fence"  {return fence;}
 "nop"    {return nop; /* meta */}
+"mv"	 {return mv;}
 "li"     {return li;}
 "la"     {return la;}
 

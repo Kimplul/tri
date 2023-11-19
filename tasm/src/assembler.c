@@ -378,9 +378,16 @@ static void fix_reloc_b(struct asm_ctx *ctx, size_t ro, size_t so)
 	ctx->buf[ro] = build_s(OPCODE_BRANCH, hi, fn0, rs1, rs2, lo);
 }
 
+/* convert instruction index (as used by ctx->idx) to addresses */
+static size_t asm_addr(size_t o)
+{
+	return o * 3;
+}
+
 static void fix_reloc_j(struct asm_ctx *ctx, size_t ro, size_t so)
 {
-	int64_t off = so - ctx->idx;
+	/* internal offsets are instruction indexes, so convert to address */
+	int64_t off = asm_addr(so) - asm_addr(ro);
 	tri_t t = tri_from(off);
 	if (tri_mask(t, 18) != t) {
 		fprintf(stderr, "jump offset at %llu too large\n",

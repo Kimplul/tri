@@ -178,6 +178,33 @@ static void do_lui(struct cpu *cpu, tri_t i)
 	cpu->pc += 3;
 }
 
+static void do_jal(struct cpu *cpu, tri_t i)
+{
+	tri_t rd, imm9;
+	parse_u(i, &rd, &imm9);
+
+	tri_t p = tri_from(cpu->pc + 3);
+	set_gpr(cpu, rd, p);
+
+	long long o = tri_to(imm9);
+	cpu->pc += o;
+}
+
+static void do_jalr(struct cpu *cpu, tri_t i)
+{
+	tri_t rd, fn0, rs1, imm9;
+	parse_i(i, &rd, &fn0, &rs1, &imm9);
+
+	tri_t p = tri_from(cpu->pc + 3);
+	set_gpr(cpu, rd, p);
+
+	tri_t t = get_gpr(cpu, rs1);
+	t = tri_add(t, imm9);
+	long long j = tri_to(t);
+
+	cpu->pc = j;
+}
+
 void cpu_reset(struct cpu *cpu)
 {
 	csr_init(cpu);
@@ -198,6 +225,8 @@ void cpu_run(struct cpu *cpu, vm_t start)
 		case OPCODE_STORE:  do_store(cpu, i);  break;
 		case OPCODE_SYSTEM: do_system(cpu, i); break;
 		case OPCODE_OP_IMM: do_op_imm(cpu, i); break;
+		case OPCODE_JAL:    do_jal(cpu, i);    break;
+		case OPCODE_JALR:   do_jalr(cpu, i);   break;
 		default: /** @todo raise illegal instruction exception */
 			     fprintf(stderr, "illegal/unimplemented "
 					     "instruction at %lx, aborting\n",

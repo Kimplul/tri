@@ -73,7 +73,7 @@
 %token ecall ebreak pcall
 %token fence
 /* meta */
-%token li la nop
+%token mv li la nop
 
 /* m (avoid name clash with stdlib div) */
 %token mul diV rem
@@ -292,8 +292,8 @@ i
 	{emit_reloc(ctx, RELOC_J, $4);
 	 emit_u(ctx, OPCODE_JAL, $2, 0);}
 
-	| jalr gpr "," gpr "," imm
-	{emit_i(ctx, OPCODE_JALR, $2, 0, $4, $6);}
+	| jalr gpr "," imm "(" gpr ")"
+	{emit_i(ctx, OPCODE_JALR, $2, 0, $6, $4);}
 
 	| beq gpr "," gpr "," addr
 	{emit_reloc(ctx, RELOC_B, $6);
@@ -337,6 +337,9 @@ i
 	{emit_d(ctx, OPCODE_DIOP, $2, $4, $6, check_nop3($8));}
 
 	/* meta */
+	| mv gpr "," gpr
+	{emit_i(ctx, OPCODE_OP_IMM, $2, OP_IMM_ADDI, $4, 0);}
+
 	| nop
 	{emit_i(ctx, OPCODE_OP_IMM, X0_NUM, OP_IMM_ADDI, X0_NUM, 0);}
 
