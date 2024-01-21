@@ -27,23 +27,20 @@ struct cpu {
 	tri_t csrw[19683];
 };
 
-static size_t get_csr_num(tri_t csr)
+tri_t get_csr(struct cpu *cpu, long i)
 {
-	return tri_to(csr) + 9841;
-}
-
-static tri_t get_csr(struct cpu *cpu, size_t i)
-{
-	size_t max_csr = cpu->mode * 6561;
+	i += 9841;
+	long max_csr = cpu->mode * 6561;
 	if (i < max_csr)
 		return 0; /* illegal access, should maybe also raise an interrupt? */
 
 	return cpu->csr[i];
 }
 
-static void set_csr(struct cpu *cpu, size_t i, tri_t t)
+void set_csr(struct cpu *cpu, long i, tri_t t)
 {
-	size_t max_csr = cpu->mode * 6561;
+	i += 9841;
+	long max_csr = cpu->mode * 6561;
 	if (i < max_csr)
 		return;
 
@@ -78,8 +75,8 @@ static void set_gpr(struct cpu *cpu, tri_t i, tri_t t)
 
 static void csr_init(struct cpu *cpu)
 {
-	cpu->csr[CSR_MPOWER] = 0;
-	cpu->csrw[CSR_MPOWER] = RW_MPOWER;
+	cpu->csrw[CSR_MPOWER + 9841] = RW_MPOWER;
+	set_csr(cpu, CSR_MPOWER, 0);
 }
 
 struct cpu *cpu_create(struct mmu *mmu, struct tmb *tmb)
@@ -127,7 +124,7 @@ static void do_system(struct cpu *cpu, tri_t i)
 	switch (fn0) {
 	case SYSTEM_CSRRW: {
 		/* read existing value and replace it with rs1 */
-		size_t n = get_csr_num(imm9);
+		long n = tri_to(imm9);
 		tri_t c = get_csr(cpu, n);
 		set_csr(cpu, n, src);
 		set_gpr(cpu, rd, c);
@@ -215,8 +212,8 @@ void cpu_run(struct cpu *cpu, vm_t start)
 	cpu->pc = start;
 
 	/* run while the shutdown trit is zero */
-	while (!(cpu->csr[CSR_MPOWER] & 0b1100)) {
-		tri_t i = mmu_read3(cpu, cpu->mmu, cpu->pc);
+	while (!(get_csr(cpu, CSR_MPOWER) & 0b1100)) {
+		tri_t i = mmu_read_pc(cpu, cpu->mmu, cpu->pc);
 		/** @todo check for raised interrupts, illegal addr etc. */
 
 		/* check lowest five trits to determine opcode */

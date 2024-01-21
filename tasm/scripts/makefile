@@ -41,7 +41,7 @@ WARNFLAGS	= -Wall -Wextra
 COMPILE_FLAGS	= $(CFLAGS) $(WARNFLAGS) $(OPTFLAGS) $(OBFLAGS) $(ASSERTFLAGS) \
 		   $(DEBUGFLAGS)
 
-INCLUDE_FLAGS	= -I include -I ../core
+INCLUDE_FLAGS	= -I include -I ../core -I ../triscv/include
 
 # This makes sure .bss is loaded into the binary
 OBJCOPY_FLAGS	?= -Obinary -R .garbage \

@@ -4,6 +4,8 @@
 #include <triscv/common.h>
 #include <triscv/cpu.h>
 
+#define BASE_PAGE_SIZE 19683
+
 typedef void (*dev_write1_t)(struct cpu *cpu, void *dev, pm_t addr, tri_t t);
 typedef void (*dev_write3_t)(struct cpu *cpu, void *dev, pm_t addr, tri_t t);
 typedef tri_t (*dev_read1_t)(struct cpu *cpu, void *dev, pm_t addr);
@@ -36,5 +38,7 @@ tri_t mmu_read3(struct cpu *cpu, struct mmu *mmu, vm_t addr);
 
 void mmu_write1(struct cpu *cpu, struct mmu *mmu, vm_t addr, tri_t t);
 void mmu_write3(struct cpu *cpu, struct mmu *mmu, vm_t addr, tri_t t);
+
+tri_t mmu_read_pc(struct cpu *cpu, struct mmu *mmu, vm_t addr);
 
 #endif

@@ -1,3 +1,4 @@
+#include <triscv/csr.h>
 #include <tasm/assembler.h>
 #include <tasm/parser.h>
 #include <bits.h>
@@ -555,8 +556,19 @@ tri_t check_nop3(const char *nop)
 tri_t check_csr(const char *csr)
 {
 	/** @todo only mpower supported for now, will have to work on this */
-	assert(strcmp(csr, "mpower"));
-	return tri_from(-9841);
+	if (strcmp(csr, "mpower"))
+		return tri_from(CSR_MPOWER);
+
+	if (strcmp(csr, "satpp"))
+		return tri_from(CSR_SATPP);
+
+	if (strcmp(csr, "satpo"))
+		return tri_from(CSR_SATPO);
+
+	if (strcmp(csr, "satpn"))
+		return tri_from(CSR_SATPN);
+
+	assert(0);
 }
 
 tri_t check_width(const char *width)

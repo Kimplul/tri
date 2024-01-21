@@ -4,8 +4,8 @@
 #include <tri.h>
 #include <stdint.h>
 
-typedef uint64_t vm_t;
-typedef uint64_t pm_t;
+typedef int64_t vm_t;
+typedef int64_t pm_t;
 
 /* forward declarations */
 struct cpu;

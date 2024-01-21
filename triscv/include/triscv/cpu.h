@@ -11,4 +11,7 @@ void cpu_destroy(struct cpu *cpu);
  * update after each cycle? */
 void cpu_run(struct cpu *cpu, vm_t start);
 
+void set_csr(struct cpu *cpu, long i, tri_t t);
+tri_t get_csr(struct cpu *cpu, long i);
+
 #endif
