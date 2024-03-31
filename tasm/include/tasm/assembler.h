@@ -11,8 +11,12 @@ enum asm_reloc_kind {
 	RELOC_LA,
 	/* relative AUIPC + ADDI (currently unimplemented) */
 	RELOC_LR,
+	/* branch */
 	RELOC_B,
+	/* jal */
 	RELOC_J,
+	/* call */
+	RELOC_CALL,
 };
 
 tri_t parse_imm(const char *imm);

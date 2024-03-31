@@ -146,12 +146,12 @@ slli, srli (shifts work differently in balanced forms, have to be careful)
 
 lui
 |-----------------------------------------------------|
-| imm9                              | rd    | LUI     | U-type
+| imm18                             | rd    | LUI     | U-type
 |-----------------------------------------------------|
 
 auipc
 |-----------------------------------------------------|
-| imm9                              | rd    | AUIPC   | U-type
+| imm18                             | rd    | AUIPC   | U-type
 |-----------------------------------------------------|
 
 add, slt, sge, seq, sne, sll, srl, sub

@@ -29,7 +29,7 @@ static void update_yylloc(struct parser *parser, YYLTYPE *lloc, const char *text
 
 %x SC_COMMENT
 
-id	[_a-zA-Z][_a-zA-Z0-9]*
+id	[._a-zA-Z][._a-zA-Z0-9]*
 label	{id}[[:space:]]*:
 
 dec	-?[0-9]+
@@ -149,6 +149,87 @@ str	\"(\\.|[^"\\])*\"
 "x79" {return x79;}
 "x80" {return x80;}
 
+"sp"  {return x1;}
+"fp"  {return x2;}
+"gp"  {return x3;}
+"a0"  {return x4;}
+"a1"  {return x5;}
+"a2"  {return x6;}
+"a3"  {return x7;}
+"a4"  {return x8;}
+"a5"  {return x9;}
+"a6"  {return x10;}
+"t0" {return x11;}
+"t1" {return x12;}
+"t2" {return x13;}
+"t3" {return x14;}
+"t4" {return x15;}
+"t5" {return x16;}
+"t6" {return x17;}
+"s0" {return x18;}
+"s1" {return x19;}
+"s2" {return x20;}
+"s3" {return x21;}
+"s4" {return x22;}
+"s5" {return x23;}
+"s6" {return x24;}
+"tp" {return x25;}
+"ra" {return x26;}
+"a7" {return x27;}
+"a8" {return x28;}
+"a9" {return x29;}
+"a10" {return x30;}
+"a11" {return x31;}
+"a12" {return x32;}
+"a13" {return x33;}
+"a14" {return x34;}
+"a15" {return x35;}
+"a16" {return x36;}
+"a17" {return x37;}
+"a18" {return x38;}
+"a19" {return x39;}
+"a20" {return x40;}
+"a21" {return x41;}
+"a22" {return x42;}
+"a23" {return x43;}
+"a24" {return x44;}
+"t7" {return x45;}
+"t8" {return x46;}
+"t9" {return x47;}
+"t10" {return x48;}
+"t11" {return x49;}
+"t12" {return x50;}
+"t13" {return x51;}
+"t14" {return x52;}
+"t15" {return x53;}
+"t16" {return x54;}
+"t17" {return x55;}
+"t18" {return x56;}
+"t19" {return x57;}
+"t20" {return x58;}
+"t21" {return x59;}
+"t22" {return x60;}
+"t23" {return x61;}
+"t24" {return x62;}
+"s7" {return x63;}
+"s8" {return x64;}
+"s9" {return x65;}
+"s10" {return x66;}
+"s11" {return x67;}
+"s12" {return x68;}
+"s13" {return x69;}
+"s14" {return x70;}
+"s15" {return x71;}
+"s16" {return x72;}
+"s17" {return x73;}
+"s18" {return x74;}
+"s19" {return x75;}
+"s20" {return x76;}
+"s21" {return x77;}
+"s22" {return x78;}
+"s23" {return x79;}
+"s24" {return x80;}
+
 "addi"	 {return addi; /* i */}
 "slti"	 {return slti;}
 "sgei"   {return sgei;}
@@ -184,6 +265,10 @@ str	\"(\\.|[^"\\])*\"
 "mv"	 {return mv;}
 "li"     {return li;}
 "la"     {return la;}
+"call"	 {return call;}
+"ret"	 {return ret;}
+"ble"    {return ble;}
+"bgt"    {return bgt;}
 
 "mul" {return mul; /* m */}
 "div" {return diV;}

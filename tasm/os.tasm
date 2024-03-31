@@ -1,0 +1,17 @@
+// trivial stuff to make sure simulator exits once test program is run and
+// making sure our _start is the first thing in the object file
+_start:
+	// random starting stack location
+	li sp, 13122
+	mv fp, sp
+	call ra, main
+	li t0, 3
+	csrrw mpower, x0, t0
+
+// simple I/O
+_putchar:
+	li t0, 19683
+	st t a0, 0(t0)
+	ret ra
+
+// include the rest of the test program here, doesn't really matter how

@@ -121,8 +121,11 @@ void emit_s(struct asm_ctx *ctx, tri_t opcode,
 		abort();
 		return;
 	}
-	tri_t imm4 = tri_mask(imm9, 4);
-	tri_t imm5 = tri_mask(tri_sr(imm9, 4), 5);
+
+	/* low five */
+	tri_t imm5 = tri_mask(imm9, 5);
+	/* high four */
+	tri_t imm4 = tri_mask(tri_sr(imm9, 5), 4);
 
 	tri_t i = build_s(opcode, imm4, fn0, xrs1, xrs2, imm5);
 	emit(ctx, i);
@@ -326,6 +329,12 @@ static void asm_ctx_destroy(struct asm_ctx *ctx)
 	free(ctx);
 }
 
+/* convert instruction index (as used by ctx->idx) to addresses */
+static size_t asm_addr(size_t o)
+{
+	return o * 3;
+}
+
 static void fix_reloc_la(struct asm_ctx *ctx, size_t ro, size_t so)
 {
 	tri_t t = tri_from(so);
@@ -354,7 +363,7 @@ static void fix_reloc_la(struct asm_ctx *ctx, size_t ro, size_t so)
 
 static void fix_reloc_b(struct asm_ctx *ctx, size_t ro, size_t so)
 {
-	int64_t off = so - ctx->idx;
+	int64_t off = asm_addr(so) - asm_addr(ro);
 	tri_t t = tri_from(off);
 	if (tri_mask(t, 9) != t) {
 		/* should really be line based rather than offset, but good
@@ -379,12 +388,6 @@ static void fix_reloc_b(struct asm_ctx *ctx, size_t ro, size_t so)
 	ctx->buf[ro] = build_s(OPCODE_BRANCH, hi, fn0, rs1, rs2, lo);
 }
 
-/* convert instruction index (as used by ctx->idx) to addresses */
-static size_t asm_addr(size_t o)
-{
-	return o * 3;
-}
-
 static void fix_reloc_j(struct asm_ctx *ctx, size_t ro, size_t so)
 {
 	/* internal offsets are instruction indexes, so convert to address */
@@ -406,6 +409,27 @@ static void fix_reloc_j(struct asm_ctx *ctx, size_t ro, size_t so)
 	ctx->buf[ro] = build_u(OPCODE_JAL, rd, t);
 }
 
+static void fix_reloc_call(struct asm_ctx *ctx, size_t ro, size_t so)
+{
+	int64_t off = asm_addr(so) - asm_addr(ro);
+	tri_t t = tri_from(off);
+
+	tri_t a = ctx->buf[ro];
+	assert(parse_opcode(a) == OPCODE_AUIPC);
+
+	tri_t rd, imm18;
+	parse_u(a, &rd, &imm18);
+	assert(imm18 == 0);
+
+	ctx->buf[ro] = build_u(OPCODE_AUIPC, rd, tri_sr(t, 9));
+
+	tri_t j = ctx->buf[ro + 1];
+	assert(parse_opcode(j) == OPCODE_JALR);
+	tri_t fn0, rs1, imm;
+	parse_i(j, &rd, &fn0, &rs1, &imm);
+	ctx->buf[ro + 1] = build_i(OPCODE_JALR, rd, fn0, rs1, tri_mask(t, 9));
+}
+
 static int try_fix_reloc(struct asm_ctx *ctx, struct asm_reloc r)
 {
 	/* ideally this would probably be a hashmap, but good enough for now */
@@ -421,6 +445,7 @@ static int try_fix_reloc(struct asm_ctx *ctx, struct asm_reloc r)
 			case RELOC_LA: fix_reloc_la(ctx, ro, so); break;
 			case RELOC_B: fix_reloc_b(ctx, ro, so); break;
 			case RELOC_J: fix_reloc_j(ctx, ro, so); break;
+			case RELOC_CALL: fix_reloc_call(ctx, ro, so); break;
 			default: fprintf(stderr, "unimplemented reloc: %d\n", r.kind);
 				 abort();
 		}

@@ -73,7 +73,7 @@
 %token ecall ebreak pcall
 %token fence
 /* meta */
-%token mv li la nop
+%token mv li la nop call ret ble bgt
 
 /* m (avoid name clash with stdlib div) */
 %token mul diV rem
@@ -312,11 +312,11 @@ i
 	{emit_reloc(ctx, RELOC_B, $6);
 	 emit_s(ctx, OPCODE_BRANCH, BRANCH_BGE, $2, $4, 0);}
 
-	| ld width "," gpr "," imm "(" gpr ")"
-	{emit_i(ctx, OPCODE_LOAD, check_width($2), $4, $8, $6);}
+	| ld width gpr "," imm "(" gpr ")"
+	{emit_i(ctx, OPCODE_LOAD, $3, check_width($2), $7, $5);}
 
-	| st width "," gpr "," imm "(" gpr ")"
-	{emit_s(ctx, OPCODE_STORE, check_width($2), $4, $8, $6);}
+	| st width gpr "," imm "(" gpr ")"
+	{emit_s(ctx, OPCODE_STORE, check_width($2), $3, $7, $5);}
 
 	| ecall
 	{emit_i(ctx, OPCODE_SYSTEM, X0_NUM, SYSTEM_ECALL, X0_NUM, 0);}
@@ -349,10 +349,18 @@ i
 	 emit_i(ctx, OPCODE_OP_IMM, $2, OP_IMM_ADDI, $2, 0);}
 
 	| li gpr "," imm
-	{emit_u(ctx, OPCODE_LUI, $2, tri_sr($4, 9));
+	{/** @todo skip lui if we can avoid it? */
+	 emit_u(ctx, OPCODE_LUI, $2, tri_sr($4, 9));
 	 emit_i(ctx, OPCODE_OP_IMM, $2, OP_IMM_ADDI, $2, tri_mask($4, 9));}
-	/* stuff like call and ret TBD once I've come up with a proper register
-	 * calling convention so we know which register to use as ra */
+	| call gpr "," addr
+	{emit_reloc(ctx, RELOC_CALL, $4);
+	 emit_u(ctx, OPCODE_AUIPC, $2, 0);
+	 emit_i(ctx, OPCODE_JALR, $2, 0, $2, 0);}
+	| ret gpr
+	{emit_i(ctx, OPCODE_JALR, X0_NUM, 0, $2, 0);}
+	| ble gpr "," gpr "," addr
+	{emit_reloc(ctx, RELOC_B, $6);
+	 emit_s(ctx, OPCODE_BRANCH, BRANCH_BGE, $4, $2, 0);}
 
 m
 	: mul gpr "," gpr "," gpr

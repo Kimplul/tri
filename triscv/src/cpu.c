@@ -106,9 +106,45 @@ static void do_op_imm(struct cpu *cpu, tri_t i)
 		set_gpr(cpu, rd, r);
 		break;
 	}
-	default: fprintf(stderr, "illegal/unimplemented OP_IMM at %lx,"
-				 "aborting\n", cpu->pc);
+	default: fprintf(stderr, "illegal/unimplemented OP_IMM at %lli, "
+				 "aborting\n", (long long int)cpu->pc);
 		 abort();
+	}
+
+	cpu->pc += 3;
+}
+
+static void do_op(struct cpu *cpu, tri_t i)
+{
+	tri_t rd, fn0, rs1, rs2, fn5;
+	parse_r(i, &rd, &fn0, &rs1, &rs2, &fn5);
+
+	tri_t src1 = get_gpr(cpu, rs1);
+	tri_t src2 = get_gpr(cpu, rs2);
+
+	switch (fn5) {
+		case 0:
+		switch (fn0) {
+		case OP_ADD: {
+			tri_t r = tri_add(src1, src2);
+			set_gpr(cpu, rd, r);
+			break;
+		}
+
+		case OP_SUB: {
+			tri_t r = tri_sub(src1, src2);
+			set_gpr(cpu, rd, r);
+			break;
+		}
+		default: fprintf(stderr, "illegal/unimplemented OP at %lli, "
+					 "aborting\n", (long long int)cpu->pc);
+			 abort();
+		}
+		break;
+
+		default: fprintf(stderr, "illegal/unimplemented OP at %lli, "
+					 "aborting\n", (long long int)cpu->pc);
+			 abort();
 	}
 
 	cpu->pc += 3;
@@ -131,8 +167,8 @@ static void do_system(struct cpu *cpu, tri_t i)
 		break;
 	}
 
-	default: fprintf(stderr, "illegal/unimplemented SYSTEM at %lx,"
-				 "aborting\n", cpu->pc);
+	default: fprintf(stderr, "illegal/unimplemented SYSTEM at %lli,"
+				 "aborting\n", (long long int)cpu->pc);
 		 abort();
 	}
 
@@ -167,11 +203,49 @@ static void do_store(struct cpu *cpu, tri_t i)
 	cpu->pc += 3;
 }
 
+static void do_load(struct cpu *cpu, tri_t i)
+{
+	tri_t rd, fn0, rs1, imm9;
+	parse_i(i, &rd, &fn0, &rs1, &imm9);
+
+	tri_t base = get_gpr(cpu, rs1);
+
+	/* should maybe check that there's zeroes in other trits in fn0? */
+	int w = tri_get_trit(fn0, 4);
+
+	/* somewhat unsure if mmu should function in trinary or binary at this
+	 * point */
+	tri_t addr = tri_add(base, imm9);
+	vm_t a = tri_to(addr);
+
+	tri_t r = 0;
+	switch (w) {
+	case 0: r = mmu_read1(cpu, cpu->mmu, a); break;
+	case 1: r = mmu_read3(cpu, cpu->mmu, a); break;
+	default:
+		/* illegal value */
+		abort();
+	}
+
+	set_gpr(cpu, rd, r);
+	cpu->pc += 3;
+}
+
 static void do_lui(struct cpu *cpu, tri_t i)
 {
 	tri_t rd, imm18;
 	parse_u(i, &rd, &imm18);
 	set_gpr(cpu, rd, tri_sl(imm18, 9));
+	cpu->pc += 3;
+}
+
+static void do_auipc(struct cpu *cpu, tri_t i)
+{
+	tri_t rd, imm18;
+	parse_u(i, &rd, &imm18);
+	tri_t pc = tri_from(cpu->pc);
+	tri_t sum = tri_add(pc, tri_sl(imm18, 9));
+	set_gpr(cpu, rd, sum);
 	cpu->pc += 3;
 }
 
@@ -192,14 +266,39 @@ static void do_jalr(struct cpu *cpu, tri_t i)
 	tri_t rd, fn0, rs1, imm9;
 	parse_i(i, &rd, &fn0, &rs1, &imm9);
 
-	tri_t p = tri_from(cpu->pc + 3);
-	set_gpr(cpu, rd, p);
-
 	tri_t t = get_gpr(cpu, rs1);
 	t = tri_add(t, imm9);
 	long long j = tri_to(t);
 
+	tri_t p = tri_from(cpu->pc + 3);
+	set_gpr(cpu, rd, p);
+
 	cpu->pc = j;
+}
+
+static void do_branch(struct cpu *cpu, tri_t i)
+{
+	tri_t imm4, fn0, rs1, rs2, imm5;
+	parse_s(i, &imm4, &fn0, &rs1, &rs2, &imm5);
+
+	tri_t imm9 = tri_sl(imm4, 5) | imm5;
+
+	tri_t c0 = get_gpr(cpu, rs1);
+	tri_t c1 = get_gpr(cpu, rs2);
+
+	long long t = tri_to(imm9) + cpu->pc;
+	long long f = cpu->pc + 3;
+
+	bool take = false;
+	switch (fn0) {
+		case BRANCH_BLT: take = tri_lt(c0, c1); break;
+		case BRANCH_BGE: take = tri_ge(c0, c1); break;
+		default: fprintf(stderr, "illegal/unimplemented BRANCH at %lli,"
+					 "aborting\n", (long long int)cpu->pc);
+			 abort();
+	}
+
+	cpu->pc = take ? t : f;
 }
 
 void cpu_reset(struct cpu *cpu)
@@ -220,14 +319,18 @@ void cpu_run(struct cpu *cpu, vm_t start)
 		switch (parse_opcode(i)) {
 		case OPCODE_LUI:    do_lui(cpu, i);    break;
 		case OPCODE_STORE:  do_store(cpu, i);  break;
+		case OPCODE_LOAD:   do_load(cpu, i);   break;
 		case OPCODE_SYSTEM: do_system(cpu, i); break;
 		case OPCODE_OP_IMM: do_op_imm(cpu, i); break;
+		case OPCODE_OP:     do_op(cpu, i);     break;
+		case OPCODE_AUIPC:  do_auipc(cpu, i);  break;
 		case OPCODE_JAL:    do_jal(cpu, i);    break;
 		case OPCODE_JALR:   do_jalr(cpu, i);   break;
+		case OPCODE_BRANCH: do_branch(cpu, i); break;
 		default: /** @todo raise illegal instruction exception */
 			     fprintf(stderr, "illegal/unimplemented "
-					     "instruction at %lx, aborting\n",
-					     cpu->pc);
+					     "instruction at %lli, aborting\n",
+					     (long long int)cpu->pc);
 			     abort();
 			     break;
 		}

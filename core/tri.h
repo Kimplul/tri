@@ -576,9 +576,9 @@ static inline int tri_sign(tri_t t)
 
 	int lz = __builtin_clzll(t);
 	if (lz % 2 == 0)
-		return 1;
+		return -1;
 
-	return -1;
+	return 1;
 }
 
 static inline bool tri_eq(tri_t a, tri_t b)
@@ -590,10 +590,10 @@ static inline bool tri_lt(tri_t a, tri_t b)
 {
 	tri_t r = tri_sub(a, b);
 	int s = tri_sign(r);
-	if (s >= 0)
-		return false;
+	if (s < 0)
+		return true;
 
-	return true;
+	return false;
 }
 
 static inline bool tri_le(tri_t a, tri_t b)
@@ -603,12 +603,12 @@ static inline bool tri_le(tri_t a, tri_t b)
 
 static inline bool tri_gt(tri_t a, tri_t b)
 {
-	return tri_le(b, a);
+	return tri_gt(b, a);
 }
 
 static inline bool tri_ge(tri_t a, tri_t b)
 {
-	return tri_lt(b, a);
+	return tri_le(b, a);
 }
 
 #define tri_illegal_op()\
