@@ -236,6 +236,7 @@ void mmu_write3(struct cpu *cpu, struct mmu *mmu, vm_t addr, tri_t t)
 	struct dev_map *d = mmu_find_dev_map(mmu, addr);
 	if (!d || !d->dev.write3) {
 		/** @todo raise bus error */
+		return;
 	}
 
 	d->dev.write3(cpu, d->dev.dev, addr - d->start, t);

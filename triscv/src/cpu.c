@@ -101,6 +101,12 @@ static void do_op_imm(struct cpu *cpu, tri_t i)
 	tri_t src = get_gpr(cpu, rs1);
 
 	switch (fn0) {
+	case OP_IMM_SLTI: {
+		tri_t r = tri_lt(src, imm9);
+		set_gpr(cpu, rd, r);
+		break;
+	}
+
 	case OP_IMM_ADDI: {
 		tri_t r = tri_add(src, imm9);
 		set_gpr(cpu, rd, r);
@@ -293,6 +299,8 @@ static void do_branch(struct cpu *cpu, tri_t i)
 	switch (fn0) {
 		case BRANCH_BLT: take = tri_lt(c0, c1); break;
 		case BRANCH_BGE: take = tri_ge(c0, c1); break;
+		case BRANCH_BNE: take = tri_ne(c0, c1); break;
+		case BRANCH_BEQ: take = tri_eq(c0, c1); break;
 		default: fprintf(stderr, "illegal/unimplemented BRANCH at %lli,"
 					 "aborting\n", (long long int)cpu->pc);
 			 abort();

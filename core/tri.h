@@ -586,6 +586,11 @@ static inline bool tri_eq(tri_t a, tri_t b)
 	return a == b;
 }
 
+static inline bool tri_ne(tri_t a, tri_t b)
+{
+	return a != b;
+}
+
 static inline bool tri_lt(tri_t a, tri_t b)
 {
 	tri_t r = tri_sub(a, b);
