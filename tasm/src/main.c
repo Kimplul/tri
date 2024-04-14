@@ -1,5 +1,6 @@
 #include <tasm/assembler.h>
 #include <stdlib.h>
+#include <string.h>
 #include <unistd.h>
 #include <stdio.h>
 
@@ -43,7 +44,7 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	if (!outfile) {
+	if (!outfile || strlen(outfile) == 0) {
 		fprintf(stderr, "no output file\n");
 		usage();
 		exit(EXIT_FAILURE);
