@@ -76,7 +76,8 @@ struct tri_option {
 	bool ok;
 };
 
-static struct tri_option __mmu_read3(struct cpu *cpu, struct mmu *mmu, vm_t addr)
+static struct tri_option __mmu_read3(struct cpu *cpu, struct mmu *mmu,
+                                     vm_t addr)
 {
 	struct dev_map *d = mmu_find_dev_map(mmu, addr);
 	if (!d || !d->dev.read3) {
@@ -85,8 +86,8 @@ static struct tri_option __mmu_read3(struct cpu *cpu, struct mmu *mmu, vm_t addr
 	}
 
 	return (struct tri_option){
-		.value = d->dev.read3(cpu, d->dev.dev, addr - d->start),
-		.ok = true
+		       .value = d->dev.read3(cpu, d->dev.dev, addr - d->start),
+		       .ok = true
 	};
 }
 
@@ -128,8 +129,9 @@ static bool __leaf_pte(tri_t pte)
 	return !(x == 0 && rw == 0);
 }
 
-static pm_t __process_pte(struct cpu *cpu, struct mmu *mmu, pm_t table, tri_t orig, size_t shift,
-		struct tlb_map *mapping)
+static pm_t __process_pte(struct cpu *cpu, struct mmu *mmu, pm_t table,
+                          tri_t orig, size_t shift,
+                          struct tlb_map *mapping)
 {
 	tri_t ppn = tri_mask(tri_sr(orig, shift), 6);
 	pm_t i = tri_to(ppn);
@@ -148,14 +150,16 @@ static pm_t __process_pte(struct cpu *cpu, struct mmu *mmu, pm_t table, tri_t or
 		tri_t cur = tri_discard(orig, shift);
 		tri_t off = tri_sub(orig, cur);
 
-		*mapping = __build_mapping(tri_to(orig), tri_to(base) + tri_to(off), tag);
+		*mapping = __build_mapping(tri_to(orig),
+		                           tri_to(base) + tri_to(off), tag);
 		return 0;
 	}
 
 	return pte.value;
 }
 
-static struct tlb_map __fetch_mapping(struct cpu *cpu, struct mmu *mmu, vm_t addr)
+static struct tlb_map __fetch_mapping(struct cpu *cpu, struct mmu *mmu,
+                                      vm_t addr)
 {
 	/* feels kind of silly to convert back to trinary, but I guess fine for
 	 * now. */

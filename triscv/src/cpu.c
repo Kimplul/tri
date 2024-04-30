@@ -113,8 +113,8 @@ static void do_op_imm(struct cpu *cpu, tri_t i)
 		break;
 	}
 	default: fprintf(stderr, "illegal/unimplemented OP_IMM at %lli, "
-				 "aborting\n", (long long int)cpu->pc);
-		 abort();
+		         "aborting\n", (long long int)cpu->pc);
+		abort();
 	}
 
 	cpu->pc += 3;
@@ -129,7 +129,7 @@ static void do_op(struct cpu *cpu, tri_t i)
 	tri_t src2 = get_gpr(cpu, rs2);
 
 	switch (fn5) {
-		case 0:
+	case 0:
 		switch (fn0) {
 		case OP_ADD: {
 			tri_t r = tri_add(src1, src2);
@@ -143,14 +143,14 @@ static void do_op(struct cpu *cpu, tri_t i)
 			break;
 		}
 		default: fprintf(stderr, "illegal/unimplemented OP at %lli, "
-					 "aborting\n", (long long int)cpu->pc);
-			 abort();
+			         "aborting\n", (long long int)cpu->pc);
+			abort();
 		}
 		break;
 
-		default: fprintf(stderr, "illegal/unimplemented OP at %lli, "
-					 "aborting\n", (long long int)cpu->pc);
-			 abort();
+	default: fprintf(stderr, "illegal/unimplemented OP at %lli, "
+		         "aborting\n", (long long int)cpu->pc);
+		abort();
 	}
 
 	cpu->pc += 3;
@@ -174,8 +174,8 @@ static void do_system(struct cpu *cpu, tri_t i)
 	}
 
 	default: fprintf(stderr, "illegal/unimplemented SYSTEM at %lli,"
-				 "aborting\n", (long long int)cpu->pc);
-		 abort();
+		         "aborting\n", (long long int)cpu->pc);
+		abort();
 	}
 
 	cpu->pc += 3;
@@ -297,13 +297,13 @@ static void do_branch(struct cpu *cpu, tri_t i)
 
 	bool take = false;
 	switch (fn0) {
-		case BRANCH_BLT: take = tri_lt(c0, c1); break;
-		case BRANCH_BGE: take = tri_ge(c0, c1); break;
-		case BRANCH_BNE: take = tri_ne(c0, c1); break;
-		case BRANCH_BEQ: take = tri_eq(c0, c1); break;
-		default: fprintf(stderr, "illegal/unimplemented BRANCH at %lli,"
-					 "aborting\n", (long long int)cpu->pc);
-			 abort();
+	case BRANCH_BLT: take = tri_lt(c0, c1); break;
+	case BRANCH_BGE: take = tri_ge(c0, c1); break;
+	case BRANCH_BNE: take = tri_ne(c0, c1); break;
+	case BRANCH_BEQ: take = tri_eq(c0, c1); break;
+	default: fprintf(stderr, "illegal/unimplemented BRANCH at %lli,"
+		         "aborting\n", (long long int)cpu->pc);
+		abort();
 	}
 
 	cpu->pc = take ? t : f;
@@ -336,11 +336,11 @@ void cpu_run(struct cpu *cpu, vm_t start)
 		case OPCODE_JALR:   do_jalr(cpu, i);   break;
 		case OPCODE_BRANCH: do_branch(cpu, i); break;
 		default: /** @todo raise illegal instruction exception */
-			     fprintf(stderr, "illegal/unimplemented "
-					     "instruction at %lli, aborting\n",
-					     (long long int)cpu->pc);
-			     abort();
-			     break;
+			fprintf(stderr, "illegal/unimplemented "
+			        "instruction at %lli, aborting\n",
+			        (long long int)cpu->pc);
+			abort();
+			break;
 		}
 
 		/* do_* is responsible for updating pc */

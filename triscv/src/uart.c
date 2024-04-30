@@ -34,11 +34,11 @@ static void uart_write1(struct cpu *cpu, struct uart *uart, pm_t addr, tri_t t)
 struct dev uart_dev(struct uart *uart)
 {
 	return (struct dev){
-		.dev = uart,
-		.size = 1,
-		.write1 = (dev_write1_t)uart_write1,
-		.write3 = NULL, /* illegal */
-		.read1 = NULL, /* not supported for now */
-		.read3 = NULL
+		       .dev = uart,
+		       .size = 1,
+		       .write1 = (dev_write1_t)uart_write1,
+		       .write3 = NULL, /* illegal */
+		       .read1 = NULL, /* not supported for now */
+		       .read3 = NULL
 	};
 }

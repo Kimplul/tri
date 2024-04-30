@@ -28,17 +28,17 @@ include src/source.mk
 
 .PHONY: format
 format:
-	find arch lib common include -iname '*.[ch]' |\
+	find include src -iname '*.[ch]' |\
 		xargs uncrustify -c uncrustify.conf --no-backup -F -
 
 .PHONY: license
 license:
-	find arch lib common include -iname '*.[ch]' |\
+	find include src -iname '*.[ch]' |\
 		xargs ./scripts/license
 
 .PHONY: docs
 docs:
-	find arch lib common include -iname '*.[ch]' -not -path */gen/* |\
+	find include src -iname '*.[ch]' -not -path */gen/* |\
 		xargs ./scripts/warn-undocumented
 	doxygen docs/doxygen.conf
 

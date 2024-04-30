@@ -8,7 +8,9 @@ struct mem {
 
 struct mem *mem_create(size_t size)
 {
-	struct mem *mem = calloc(1, sizeof(struct mem) + size * sizeof(mem->buf[0]));
+	struct mem *mem = calloc(1,
+	                         sizeof(struct mem) + size *
+	                         sizeof(mem->buf[0]));
 	mem->size = size;
 	return mem;
 }
@@ -60,11 +62,11 @@ static tri_t mem_read3(struct cpu *cpu, struct mem *mem, pm_t addr)
 struct dev mem_dev(struct mem *mem)
 {
 	return (struct dev){
-		.dev = mem,
-		.size = mem->size,
-		.write1 = (dev_write1_t)mem_write1,
-		.write3 = (dev_write3_t)mem_write3,
-		.read1 = (dev_read1_t)mem_read1,
-		.read3 = (dev_read3_t)mem_read3
+		       .dev = mem,
+		       .size = mem->size,
+		       .write1 = (dev_write1_t)mem_write1,
+		       .write3 = (dev_write3_t)mem_write3,
+		       .read1 = (dev_read1_t)mem_read1,
+		       .read3 = (dev_read3_t)mem_read3
 	};
 }

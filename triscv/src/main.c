@@ -20,10 +20,10 @@
 #define IMM18(t) ((t) << 18)
 
 static const char *cmdline_usage =
-"triscv simulator usage:\n"
-" triscv simfile\n"
-"	-h      Show usage(this)\n"
-"	simfile File to simulate\n"
+	"triscv simulator usage:\n"
+	" triscv simfile\n"
+	"	-h      Show usage(this)\n"
+	"	simfile File to simulate\n"
 ;
 
 static void usage()
@@ -54,7 +54,7 @@ static void *read_simulation_file(const char *file, size_t *len)
 	if (!buf)
 		return NULL;
 
-	fread(buf, s, 1 , f);
+	fread(buf, s, 1, f);
 	fclose(f);
 	return buf;
 }
@@ -64,14 +64,14 @@ int main(int argc, char *argv[])
 	int opt;
 	while ((opt = getopt(argc, argv, "h")) != -1) {
 		switch (opt) {
-			case 'h':
-				usage();
-				exit(EXIT_SUCCESS);
-				break;
-			default:
-				usage();
-				exit(EXIT_FAILURE);
-				break;
+		case 'h':
+			usage();
+			exit(EXIT_SUCCESS);
+			break;
+		default:
+			usage();
+			exit(EXIT_FAILURE);
+			break;
 		}
 	}
 

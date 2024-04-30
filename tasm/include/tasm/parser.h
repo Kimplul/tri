@@ -51,6 +51,7 @@ void destroy_parser(struct parser *p);
  * @param fname Name of file \p buf was read from.
  * @param buf Contents of \p fname.
  */
-void parse(struct parser *p, struct asm_ctx *ctx, const char *fname, const char *buf);
+void parse(struct parser *p, struct asm_ctx *ctx, const char *fname,
+           const char *buf);
 
 #endif /* PARSER_H */

@@ -1,5 +1,6 @@
 tasm/tasm
 tdump/tdump
 triscv/triscv
-deps.mk
-build
+**/deps.mk
+**/build
+**/docs/output

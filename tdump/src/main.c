@@ -4,10 +4,10 @@
 #include <stdio.h>
 
 static const char *cmdline_usage =
-"tdump trinary deassembler usage:\n"
-" tdump infile\n"
-"	-h     Show usage (this)\n"
-"	infile File to deassemble\n"
+	"tdump trinary deassembler usage:\n"
+	" tdump infile\n"
+	"	-h     Show usage (this)\n"
+	"	infile File to deassemble\n"
 ;
 
 static void usage()

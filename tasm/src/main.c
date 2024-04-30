@@ -5,12 +5,12 @@
 #include <stdio.h>
 
 static const char *cmdline_usage =
-"tasm trinary assembler usage:\n"
-" tasm [-I <dir>...] -o outfile infile\n"
-"	-h           Show usage (this)\n"
-"	-I <dir>     Add directory to include path\n"
-"	-o <outfile> File to output to\n"
-"	infile       Top file to assemble\n"
+	"tasm trinary assembler usage:\n"
+	" tasm [-I <dir>...] -o outfile infile\n"
+	"	-h           Show usage (this)\n"
+	"	-I <dir>     Add directory to include path\n"
+	"	-o <outfile> File to output to\n"
+	"	infile       Top file to assemble\n"
 ;
 
 static void usage()

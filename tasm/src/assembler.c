@@ -87,8 +87,8 @@ tri_t parse_imm(const char *imm)
 }
 
 void emit_r(struct asm_ctx *ctx, tri_t opcode,
-		enum gpr_num rd, tri_t fn0, enum gpr_num rs1,
-		enum gpr_num rs2, tri_t fn5)
+            enum gpr_num rd, tri_t fn0, enum gpr_num rs1,
+            enum gpr_num rs2, tri_t fn5)
 {
 	tri_t xrd  = gpr_tri(rd );
 	tri_t xrs1 = gpr_tri(rs1);
@@ -98,12 +98,13 @@ void emit_r(struct asm_ctx *ctx, tri_t opcode,
 }
 
 void emit_i(struct asm_ctx *ctx, tri_t opcode,
-		enum gpr_num rd, tri_t fn0, enum gpr_num rs1, tri_t imm9)
+            enum gpr_num rd, tri_t fn0, enum gpr_num rs1, tri_t imm9)
 {
 	tri_t xrd   = gpr_tri(rd );
 	tri_t xrs1  = gpr_tri(rs1);
 	if (!check_imm(imm9, 9)) {
-		fprintf(stderr, "immediate %lx doesn't fit into 9 trits\n", imm9);
+		fprintf(stderr, "immediate %lx doesn't fit into 9 trits\n",
+		        imm9);
 		abort();
 		return;
 	}
@@ -112,12 +113,13 @@ void emit_i(struct asm_ctx *ctx, tri_t opcode,
 }
 
 void emit_s(struct asm_ctx *ctx, tri_t opcode,
-		tri_t fn0, enum gpr_num rs1, enum gpr_num rs2, tri_t imm9)
+            tri_t fn0, enum gpr_num rs1, enum gpr_num rs2, tri_t imm9)
 {
 	tri_t xrs1  = gpr_tri(rs1);
 	tri_t xrs2  = gpr_tri(rs2);
 	if (!check_imm(imm9, 9)) {
-		fprintf(stderr, "immediate %lx doesn't fit into 9 trits\n", imm9);
+		fprintf(stderr, "immediate %lx doesn't fit into 9 trits\n",
+		        imm9);
 		abort();
 		return;
 	}
@@ -132,11 +134,12 @@ void emit_s(struct asm_ctx *ctx, tri_t opcode,
 }
 
 void emit_u(struct asm_ctx *ctx, tri_t opcode,
-		enum gpr_num rd, tri_t imm18)
+            enum gpr_num rd, tri_t imm18)
 {
 	tri_t xrd = gpr_tri(rd);
 	if (!check_imm(imm18, 18)) {
-		fprintf(stderr, "immediate %lx does not fit into 18 trits\n", imm18);
+		fprintf(stderr, "immediate %lx does not fit into 18 trits\n",
+		        imm18);
 		abort();
 		return;
 	}
@@ -146,14 +149,15 @@ void emit_u(struct asm_ctx *ctx, tri_t opcode,
 }
 
 void emit_d(struct asm_ctx *ctx, tri_t opcode,
-		enum gpr_num rd, enum gpr_num rs1, enum gpr_num rs2, tri_t imm10)
+            enum gpr_num rd, enum gpr_num rs1, enum gpr_num rs2, tri_t imm10)
 {
 	tri_t xrd  = gpr_tri(rd );
 	tri_t xrs1 = gpr_tri(rs1);
 	tri_t xrs2 = gpr_tri(rs2);
 
 	if (!check_imm(imm10, 10)) {
-		fprintf(stderr, "immediate %lx does not fit into 10 trits\n", imm10);
+		fprintf(stderr, "immediate %lx does not fit into 10 trits\n",
+		        imm10);
 		abort();
 		return;
 	}
@@ -240,7 +244,8 @@ static int process(struct asm_ctx *ctx, const char *file)
 {
 	FILE *f = fopen(file, "rb");
 	if (!f) {
-		fprintf(stderr, "failed opening %s: %s\n", file, strerror(errno));
+		fprintf(stderr, "failed opening %s: %s\n", file,
+		        strerror(errno));
 		return -1;
 	}
 
@@ -369,7 +374,7 @@ static void fix_reloc_b(struct asm_ctx *ctx, size_t ro, size_t so)
 		/* should really be line based rather than offset, but good
 		 * enough for now */
 		fprintf(stderr, "branch offset at %llu too large\n",
-				(unsigned long long)ro);
+		        (unsigned long long)ro);
 		abort();
 	}
 
@@ -395,7 +400,7 @@ static void fix_reloc_j(struct asm_ctx *ctx, size_t ro, size_t so)
 	tri_t t = tri_from(off);
 	if (tri_mask(t, 18) != t) {
 		fprintf(stderr, "jump offset at %llu too large\n",
-				(unsigned long long)ro);
+		        (unsigned long long)ro);
 		abort();
 	}
 
@@ -442,12 +447,12 @@ static int try_fix_reloc(struct asm_ctx *ctx, struct asm_reloc r)
 		size_t so = s.offset;
 		/* matching */
 		switch (r.kind) {
-			case RELOC_LA: fix_reloc_la(ctx, ro, so); break;
-			case RELOC_B: fix_reloc_b(ctx, ro, so); break;
-			case RELOC_J: fix_reloc_j(ctx, ro, so); break;
-			case RELOC_CALL: fix_reloc_call(ctx, ro, so); break;
-			default: fprintf(stderr, "unimplemented reloc: %d\n", r.kind);
-				 abort();
+		case RELOC_LA: fix_reloc_la(ctx, ro, so); break;
+		case RELOC_B: fix_reloc_b(ctx, ro, so); break;
+		case RELOC_J: fix_reloc_j(ctx, ro, so); break;
+		case RELOC_CALL: fix_reloc_call(ctx, ro, so); break;
+		default: fprintf(stderr, "unimplemented reloc: %d\n", r.kind);
+			abort();
 		}
 		return 0;
 	}
@@ -462,7 +467,8 @@ static int fix_relocs(struct asm_ctx *ctx)
 		struct asm_reloc r = ctx->relocs[i];
 		if (try_fix_reloc(ctx, r)) {
 			/* we were unable to fulfill this reloc, fail */
-			fprintf(stderr, "unable to fulfill reloc for %s\n", r.sym);
+			fprintf(stderr, "unable to fulfill reloc for %s\n",
+			        r.sym);
 			return 1;
 		}
 	}
@@ -535,7 +541,9 @@ tri_t check_nop(const char *nop)
 
 		case ' ': continue;
 		default:
-			fprintf(stderr, "invalid character in unop format: %c\n", nop[i]);
+			fprintf(stderr,
+			        "invalid character in unop format: %c\n",
+			        nop[i]);
 			abort();
 		}
 
@@ -567,7 +575,9 @@ tri_t check_nop3(const char *nop)
 
 		case ' ': continue;
 		default:
-			fprintf(stderr, "invalid character in unop format: %c\n", nop[i]);
+			fprintf(stderr,
+			        "invalid character in unop format: %c\n",
+			        nop[i]);
 			abort();
 		}
 
@@ -609,11 +619,14 @@ tri_t check_width(const char *width)
 	return 0;
 }
 
-void emit_reloc(struct asm_ctx *ctx, enum asm_reloc_kind reloc, const char *name)
+void emit_reloc(struct asm_ctx *ctx, enum asm_reloc_kind reloc,
+                const char *name)
 {
 	if (ctx->reloc_count >= ctx->reloc_max) {
 		ctx->reloc_max *= 2;
-		ctx->relocs = realloc(ctx->relocs, ctx->reloc_max * sizeof(struct asm_reloc));
+		ctx->relocs = realloc(ctx->relocs,
+		                      ctx->reloc_max *
+		                      sizeof(struct asm_reloc));
 	}
 
 	ctx->relocs[ctx->reloc_count++] = (struct asm_reloc){
@@ -627,7 +640,8 @@ void emit_label(struct asm_ctx *ctx, const char *name)
 {
 	if (ctx->sym_count >= ctx->sym_max) {
 		ctx->sym_max *= 2;
-		ctx->syms = realloc(ctx->syms, ctx->sym_max * sizeof(struct asm_symbol));
+		ctx->syms = realloc(ctx->syms,
+		                    ctx->sym_max * sizeof(struct asm_symbol));
 	}
 
 	ctx->syms[ctx->sym_count++] = (struct asm_symbol){
