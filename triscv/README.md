@@ -25,6 +25,7 @@ M-mode/S-mode/U-mode fits pretty nicely into trinary, heh.
 
 27 trit ops, registers 3^4?
 
+```
  2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0
  6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
 |-----------------------------------------------------|
@@ -38,6 +39,8 @@ M-mode/S-mode/U-mode fits pretty nicely into trinary, heh.
 |-----------------------------------------------------|
 | imm5    | rs2   | rs1   | immd    | rd    | opcode  | D-type
 |-----------------------------------------------------|
+```
+
 (D is a variant of R, where immd is actually fn0, but used as an immediate)
 
 Compressed instructions probably possible to implement in future but left alone
@@ -65,6 +68,7 @@ like 32bit computers tend to use.
 
 Page table entries:
 
+```
  2 2 2 2 2 2 2 1 1 1 1 1 1 1 1 1 1 0 0 0 0 0 0 0 0 0 0
  6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0 9 8 7 6 5 4 3 2 1 0
 |-----------------------------------------------------|
@@ -74,6 +78,7 @@ Page table entries:
 |-----------------------------------------------------|
 | Reserved                                            |
 |-----------------------------------------------------|
+```
 
 TAG is a tag that allows us to separate one address space into multiple regions,
 similar to CODOMS system but scaled down a lot. If left 0, code executing in the
@@ -86,9 +91,11 @@ now.
 
 R/W and A/D work by the following table:
 
+```
 N => both (R and W, A and D)
 O => none
 P => top (R, A)
+```
 
 RSW is reserved for S-mode usage.
 
@@ -129,80 +136,110 @@ TDB
 ## I
 
 addi, slti
+```
 |-----------------------------------------------------|
 | imm0            | rs1   | fn0     | rd    | OP-IMM  | I-type
 |-----------------------------------------------------|
+```
 
 unop (some macro instructions might be available in assembler)
+```
 |-----------------------------------------------------|
 | 0         |N|O|P| rs1   | fn0     | rd    | OP-IMM  | I-type
 |-----------------------------------------------------|
+```
 
 slli, srli (shifts work differently in balanced forms, have to be careful)
 	(shmt is 'unsigned', i.e. the actual shift amount is shmt + 13)
+```
 |-----------------------------------------------------|
 | imm0      |shmt | rs1   | fn0     | rd    | OP-IMM  | I-type
 |-----------------------------------------------------|
+```
 
 lui
+```
 |-----------------------------------------------------|
 | imm18                             | rd    | LUI     | U-type
 |-----------------------------------------------------|
+```
 
 auipc
+```
 |-----------------------------------------------------|
 | imm18                             | rd    | AUIPC   | U-type
 |-----------------------------------------------------|
+```
 
 add, slt, sge, seq, sne, sll, srl, sub
+```
 |-----------------------------------------------------|
 | 0       | rs2   | rs1   | fn0     | rd    | OP      | R-type
 |-----------------------------------------------------|
+```
 
 diop
+```
 |-----------------------------------------------------|
 |N|O|P|N|O| rs2   | rs1   |P|N|O|P|0| rd    | DIOP    | D-type
 |-----------------------------------------------------|
+```
 
 nop
+```
 |-----------------------------------------------------|
 | 0               | x0    | 0       | x0    | OP-IMM  | I-type
 |-----------------------------------------------------|
+```
 
 jal
+```
 |-----------------------------------------------------|
 | imm9                              | rd    | JAL     | U-type
 |-----------------------------------------------------|
+```
 
 jalr
+```
 |-----------------------------------------------------|
 | imm0            | rs1   | 0       | rd    | JALR    | I-type
 |-----------------------------------------------------|
+```
 
 beq, bne, blt, bge
+```
 |-----------------------------------------------------|
 | imm0    | rs2   | rs1   | fn0     | imm4  | BRANCH  | S-type
 |-----------------------------------------------------|
+```
 
 load (w = width, i = 1 tryte, 0 = 3 trytes, 1 = 9 trytes)
+```
 |-----------------------------------------------------|
 | imm0            | rs1   |w| 0     | rd    | LOAD    | I-type
 |-----------------------------------------------------|
+```
 
 store
+```
 |-----------------------------------------------------|
 | imm5    | rs2   | rs1   |w| 0     | imm4  | STORE   | S-type
 |-----------------------------------------------------|
+```
 
 fence (todo)
+```
 |-----------------------------------------------------|
 | imm0            | rs1   | fn0     | rd    | MEM     | I-type
 |-----------------------------------------------------|
+```
 
 ecall, ebreak, pcall
+```
 |-----------------------------------------------------|
 | imm0            | x0    | fn0     | x0    | SYSTEM  | I-type
 |-----------------------------------------------------|
+```
 
 hints, any OP-IMM or OP with rd = x0. Additionally,
 a number of maybe-instructions in SYSTEM for future use, if unimplemented
@@ -211,19 +248,25 @@ just write 0 to rd.
 ## M
 
 mul
+```
 |-----------------------------------------------------|
 | fn5     | rs2   | rs1   | fn0     | rd    | OP      | R-type
 |-----------------------------------------------------|
+```
 
 div
+```
 |-----------------------------------------------------|
 | fn5     | rs2   | rs1   | fn0     | rd    | OP      | R-type
 |-----------------------------------------------------|
+```
 
 rem
+```
 |-----------------------------------------------------|
 | fn5     | rs2   | rs1   | fn0     | rd    | OP      | R-type
 |-----------------------------------------------------|
+```
 
 ## A
 
@@ -241,6 +284,7 @@ somewhere. Platforms may require at least n slots. Maybe? Reads inside
 transaction read from memory. Slow commits, at least somewhat, but probably
 somewhat simpler. Spinlock (and by extension, mutex) would then be
 
+```
 spinlock:
 	// spin until a zero appears
 	lw x1, (x2)
@@ -256,15 +300,18 @@ spinlock:
 	// avoid livelock, or rely on whatever system we're dealing with to
 	// provide it for us
 	beqz x1, spinlock
+```
 
 could probably also provide simple atomics, like add or something, but eh
 
 ## Zicsr
 
 csrrw, csrrs, csrrc
+```
 |-----------------------------------------------------|
 | imm0            | rs    | fn0     | rd    | SYSTEM  | I-type
 |-----------------------------------------------------|
+``
 
 The CSR numbers are specified in the future.
 
