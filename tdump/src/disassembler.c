@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: copyleft-next-0.3.1 */
+
 #include <tdump/disassembler.h>
 #include <limits.h>
 #include <bits.h>
