@@ -28,17 +28,17 @@ include src/source.mk
 
 .PHONY: format
 format:
-	find include src -iname '*.[ch]' |\
+	find src include -iname '*.[ch]' |\
 		xargs uncrustify -c uncrustify.conf --no-backup -F -
 
 .PHONY: license
 license:
-	find include src -iname '*.[ch]' |\
+	find src include -iname '*.[ch]' |\
 		xargs ./scripts/license
 
 .PHONY: docs
 docs:
-	find include src -iname '*.[ch]' -not -path */gen/* |\
+	find src include -iname '*.[ch]' -not -path */gen/* |\
 		xargs ./scripts/warn-undocumented
 	doxygen docs/doxygen.conf
 
