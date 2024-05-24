@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: copyleft-next-0.3.1 */
+
 #include <triscv/csr.h>
 #include <tasm/assembler.h>
 #include <tasm/parser.h>

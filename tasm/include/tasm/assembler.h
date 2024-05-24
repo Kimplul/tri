@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: copyleft-next-0.3.1 */
+
 #ifndef TASM_ASSEMBLER_H
 #define TASM_ASSEMBLER_H
 
