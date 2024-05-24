@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: copyleft-next-0.3.1 */
+
 #include <triscv/cpu.h>
 #include <triscv/mmu.h>
 #include <triscv/csr.h>

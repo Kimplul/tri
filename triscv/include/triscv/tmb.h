@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: copyleft-next-0.3.1 */
+
 #ifndef TRISCV_TMB_H
 #define TRISCV_TMB_H
 

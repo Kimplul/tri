@@ -1,3 +1,5 @@
+/* SPDX-License-Identifier: copyleft-next-0.3.1 */
+
 #ifndef TRISCV_CPU_H
 #define TRISCV_CPU_H
 
