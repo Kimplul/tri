@@ -415,7 +415,7 @@ top
 
 unit
 	: top
-	| top unit
+	| unit top
 
 input
 	: unit
