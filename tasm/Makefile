@@ -20,6 +20,10 @@ setup:
 	@echo -n > deps.mk
 	@./scripts/gen-deps -p TASM -c COMPILE_TASM -b tasm "${TASM_SOURCES}"
 
+.PHONY: analyze
+analyze: setup
+	CC='gcc -fanalyzer' SKIP_ANALYZER='-fno-analyzer' $(MAKE) -f scripts/makefile
+
 CLEANUP		:= build deps.mk tasm
 CLEANUP_CMD	:=
 TASM_SOURCES	:= ../core/bits.c

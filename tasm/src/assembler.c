@@ -274,9 +274,21 @@ static int process(struct asm_ctx *ctx, const char *file)
 int process_file(struct asm_ctx *ctx, const char *file)
 {
 	const char *base = tasm_basename(file);
+	if (!base)
+		return -1;
+
 	const char *dir = tasm_dirname(file);
+	if (!dir) {
+		free((void *)base);
+		return -1;
+	}
 
 	const char *cwd = tasm_cwdname();
+	if (!cwd) {
+		free((void *)base);
+		free((void *)dir);
+		return -1;
+	}
 
 	chdir(dir);
 	int res = process(ctx, base);
@@ -292,6 +304,9 @@ int process_file(struct asm_ctx *ctx, const char *file)
 static struct asm_ctx *asm_ctx_create()
 {
 	struct asm_ctx *ctx = malloc(sizeof(struct asm_ctx));
+	if (!ctx)
+		return NULL;
+
 	/* code buffer */
 	ctx->size = 1;
 	ctx->buf = malloc(sizeof(tri_t));
@@ -482,17 +497,26 @@ int assemble(const char *outfile, const char *infile)
 {
 	/** @todo cleanup */
 	struct asm_ctx *ctx = asm_ctx_create();
+	if (!ctx)
+		return -1;
+
 	int ret = process_file(ctx, infile);
-	if (ret)
+	if (ret) {
+		asm_ctx_destroy(ctx);
 		return ret;
+	}
 
 	ret = fix_relocs(ctx);
-	if (ret)
+	if (ret) {
+		asm_ctx_destroy(ctx);
 		return ret;
+	}
 
 	FILE *f = fopen(outfile, "wb");
-	if (!f)
+	if (!f) {
+		asm_ctx_destroy(ctx);
 		return -1;
+	}
 
 	for (size_t i = 0; i < ctx->idx; ++i) {
 		tri_t t = ctx->buf[i];

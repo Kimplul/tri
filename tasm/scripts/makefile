@@ -30,9 +30,14 @@ OBJCOPY		!= [ "$(LLVM)" != "0" ] \
 			&& echo llvm-objcopy \
 			|| echo $(CROSS_COMPILE)objcopy
 
-COMPILER	!= [ "$(LLVM)" != "0" ] \
-			&& echo clang --target="$(CROSS_COMPILE)" \
-			|| echo $(CROSS_COMPILE)gcc
+COMPILER	!= [ -n "$(CROSS_COMPILE)" ]						\
+			&& {								\
+				[ "$(LLVM)" != "0" ]					\
+					&& echo clang --target="$(CROSS_COMPILE)"	\
+					|| echo $(CROSS_COMPILE)gcc			\
+					;						\
+			}								\
+			|| echo $(CC)
 
 
 OBFLAGS		= -std=gnu17 -g
@@ -56,15 +61,15 @@ LINT		= $(COMPILER) \
 UBSAN		?= 0
 TASM_FLAGS	!= [ "$(UBSAN)" != "0" ] \
 			&& echo -fsanitize=undefined \
-			|| echo
+			|| :
 
 COMPILE_TASM	= $(COMPILE) $(TASM_FLAGS)
 
--include deps.mk
--include src/source.mk
+include deps.mk
+include gen/source.mk
 
-tasm: $(TASM_OBJS)
-	$(COMPILE_TASM) $(TASM_OBJS) -o $@
+tasm: $(TASM_OBJS) build/gen/gen_parser.o
+	$(COMPILE_TASM) $(TASM_OBJS) build/gen/gen_parser.o -o $@
 
 
 # might lint some common things twice
