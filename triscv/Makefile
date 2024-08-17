@@ -20,6 +20,10 @@ setup:
 	@echo -n > deps.mk
 	@./scripts/gen-deps -p TRISCV -c COMPILE_TRISCV -b triscv "${TRISCV_SOURCES}"
 
+.PHONY: analyze
+analyze: setup
+	CC='gcc -fanalyzer' SKIP_ANALYZER='-fno-analyzer' $(MAKE) -f scripts/makefile
+
 CLEANUP		:= build deps.mk triscv
 CLEANUP_CMD	:=
 TRISCV_SOURCES	:= ../utf9/utf9.c ../core/bits.c

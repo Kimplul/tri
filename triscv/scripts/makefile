@@ -30,9 +30,14 @@ OBJCOPY		!= [ "$(LLVM)" != "0" ] \
 			&& echo llvm-objcopy \
 			|| echo $(CROSS_COMPILE)objcopy
 
-COMPILER	!= [ "$(LLVM)" != "0" ] \
-			&& echo clang --target="$(CROSS_COMPILE)" \
-			|| echo $(CROSS_COMPILE)gcc
+COMPILER	!= [ -n "$(CROSS_COMPILE)" ]						\
+			&& {								\
+				[ "$(LLVM)" != "0" ]					\
+					&& echo clang --target="$(CROSS_COMPILE)"	\
+					|| echo $(CROSS_COMPILE)gcc			\
+					;						\
+			}								\
+			|| echo $(CC)
 
 
 OBFLAGS		= -std=c17 -g

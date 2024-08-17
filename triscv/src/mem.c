@@ -13,6 +13,9 @@ struct mem *mem_create(size_t size)
 	struct mem *mem = calloc(1,
 	                         sizeof(struct mem) + size *
 	                         sizeof(mem->buf[0]));
+	if (!mem)
+		return NULL;
+
 	mem->size = size;
 	return mem;
 }
