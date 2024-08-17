@@ -20,6 +20,10 @@ setup:
 	@echo -n > deps.mk
 	@./scripts/gen-deps -p TDUMP -c COMPILE_TDUMP -b tdump "${TDUMP_SOURCES}"
 
+.PHONY: analyze
+analyze: setup
+	CC='gcc -fanalyzer' SKIP_ANALYZER='-fno-analyzer' $(MAKE) -f scripts/makefile
+
 CLEANUP		:= build deps.mk tdump
 CLEANUP_CMD	:=
 TDUMP_SOURCES	:= ../core/bits.c

@@ -308,6 +308,9 @@ int disassemble(const char *file)
 {
 	size_t len = 0;
 	const uint32_t *buf = read_object_file(file, &len);
+	if (!buf)
+		return -1;
+
 	/* somewhat specific but we know that each tryte is mapped to uin32_t */
 	struct disasm_ctx ctx = {.buf = buf, .pc = 0,
 		                 .len = len / sizeof(uint32_t)};
